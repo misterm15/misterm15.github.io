@@ -304,6 +304,7 @@
             display: flex;
             flex-direction: column;
             height: 100vh;
+            padding-top: 200px; /* Reserve space for the header */
         }
         
         /* Sticky header with filters */
@@ -333,6 +334,9 @@
             flex: 1;
             overflow-y: auto;
             padding: 20px;
+            margin-top: 0; /* Ensure no extra margin */
+            position: relative; /* Position context for children */
+            z-index: 1; /* Lower than header */
         }
         
         /* Filter container */
@@ -1327,6 +1331,25 @@
                 window.addEventListener('touchstart', handleTouchStart, { passive: true });
                 window.addEventListener('touchmove', handleTouchMove, { passive: true });
                 
+                // Also handle scroll button visibility separately from header visibility
+                const updateScrollButtonVisibility = () => {
+                    const scrollButton = document.getElementById('scrollTopButton');
+                    if (scrollButton) {
+                        if (window.scrollY > 200) {
+                            scrollButton.style.opacity = '1';
+                            scrollButton.style.pointerEvents = 'auto';
+                            scrollButton.style.transform = 'scale(1)';
+                        } else {
+                            scrollButton.style.opacity = '0';
+                            scrollButton.style.pointerEvents = 'none';
+                            scrollButton.style.transform = 'scale(0.95)';
+                        }
+                    }
+                };
+                window.addEventListener('scroll', updateScrollButtonVisibility, { passive: true });
+                // Call immediately to set initial state
+                setTimeout(updateScrollButtonVisibility, 100);
+                
                 // Listen for resize events to optimize for mobile
                 const handleResize = () => {
                     // Set smaller initial search bar padding on mobile
@@ -1359,6 +1382,7 @@
                     window.removeEventListener('touchstart', handleTouchStart);
                     window.removeEventListener('touchmove', handleTouchMove);
                     window.removeEventListener('resize', handleResize);
+                    window.removeEventListener('scroll', updateScrollButtonVisibility);
                 };
             }, [lastScrollY, isExpanded]);
             
@@ -1988,9 +2012,9 @@
                         </div>
                     </div>
                     
-                    {/* Scroll to top button - visible when scrolled down */}
-                    {/* Removed conditional rendering to ensure button always shows when scrolled */}
+                    {/* Scroll to top button - always visible after scrolling a bit */}
                     <button 
+                        id="scrollTopButton"
                         onClick={() => {
                             window.scrollTo({ top: 0, behavior: 'smooth' });
                             // Also explicitly set state variables to ensure proper UI update
@@ -2007,16 +2031,18 @@
                             backgroundColor: 'rgba(255, 215, 0, 0.9)',
                             color: '#000',
                             border: 'none',
-                            display: lastScrollY > 100 ? 'flex' : 'none', /* Show when scrolled down */
+                            display: 'flex', /* Always flex, opacity will control visibility */
+                            opacity: '0', /* Start hidden, JS will show it */
+                            pointerEvents: 'none', /* Start with no interactions */
                             alignItems: 'center',
                             justifyContent: 'center',
                             fontSize: '24px',
                             cursor: 'pointer',
                             zIndex: 9999, /* Increased z-index to ensure visibility */
                             boxShadow: '0 4px 15px rgba(0, 0, 0, 0.5)',
-                            transition: 'all 0.3s ease',
+                            transition: 'opacity 0.3s ease, transform 0.3s ease',
                             fontWeight: 'bold',
-                            animation: 'fadeIn 0.3s ease'
+                            transform: 'scale(0.95)'
                         }}
                         title="Nach oben"
                     >
