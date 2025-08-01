@@ -31,6 +31,8 @@
                 overflow: visible !important;
                 font-family: Arial, sans-serif !important;
                 background: white !important;
+                margin: 0 !important;
+                padding: 0 !important;
             }
             
             body * { 
@@ -45,7 +47,7 @@
             }
             
             .content-section { 
-                position: absolute; 
+                position: relative !important; /* Changed from absolute to relative */
                 left: 0; 
                 top: 0; 
                 width: 100%; 
@@ -55,6 +57,8 @@
                 padding: 0 !important;
                 margin: 0 !important;
                 font-family: Arial, sans-serif !important;
+                float: none !important;
+                display: block !important;
             }
             
             /* Compact PDF-like layout for print */
@@ -68,35 +72,41 @@
                 break-inside: avoid !important;
                 page-break-inside: avoid !important;
                 border: 1px solid #ccc !important;
-                margin-bottom: 10px !important;
+                margin-bottom: 8px !important; /* Reduced from 10px */
                 margin-top: 0 !important;
                 background-color: white !important;
                 box-shadow: none !important;
-                padding: 10px !important;
-                font-size: 11pt !important;
+                padding: 8px !important; /* Reduced from 10px */
+                font-size: 10pt !important; /* Reduced from 11pt */
             }
             
             /* Optimize spacing */
             .task-header {
-                margin-bottom: 5px !important;
+                margin-bottom: 3px !important; /* Reduced from 5px */
             }
             
             .task-title {
                 color: #333 !important;
                 font-weight: bold !important;
                 border-bottom: 1px solid #ddd !important;
-                font-size: 12pt !important;
-                margin: 0 0 5px 0 !important;
+                font-size: 11pt !important; /* Reduced from 12pt */
+                margin: 0 0 3px 0 !important; /* Reduced from 5px */
             }
             
             .task-date-time {
-                font-size: 10pt !important;
+                font-size: 9pt !important; /* Reduced from 10pt */
             }
             
             .task-date-time span {
                 margin: 0 !important;
                 padding: 0 !important;
-                line-height: 1.2 !important;
+                line-height: 1.1 !important; /* Reduced from 1.2 */
+            }
+            
+            /* Make task cards take up less vertical space */
+            .task-card h4 {
+                font-size: 9pt !important; /* Reduced size */
+                margin: 3px 0 !important; /* Reduced margins */
             }
             
             /* Person tags */
@@ -127,7 +137,14 @@
             /* Page settings */
             @page { 
                 size: portrait; 
-                margin: 1.5cm !important; 
+                margin: 1.0cm !important; /* Reduced margins to fit more content */
+            }
+            
+            /* Remove any float or overflow issues that might cause extra pages */
+            * {
+                float: none !important;
+                position: static !important;
+                overflow: visible !important;
             }
             
             .header-section,
@@ -150,14 +167,14 @@
                 color: black !important;
             }
             
-            /* Add subtitle with search term */
+            /* Add subtitle with person's name after the title */
             .content-section::after {
                 content: var(--print-subtitle);
                 font-size: 14pt !important;
                 display: block !important;
                 text-align: center !important;
                 margin-bottom: 15px !important;
-                color: #333 !important;
+                color: #000 !important;
                 margin-top: 5px !important;
             }
             
@@ -168,19 +185,29 @@
                 font-size: 10pt !important;
             }
             
-            /* Style for arrow */
+            /* Style for arrow and highlighting person name */
+            .content-section .task-card .person-tag[style*="searchTerm"] {
+                font-weight: bold !important;
+                background-color: #ffeb99 !important; /* Light yellow background */
+                padding: 1px 3px !important;
+                border-radius: 3px !important;
+                color: #000 !important;
+            }
+            
             .content-section .task-card .person-tag[style*="searchTerm"]::after {
                 content: " ←";
                 font-weight: bold !important;
             }
             
-            /* Add print footer with date */
+            /* Add print header as a regular element instead of pseudo-element */
+            .content-section {
+                position: relative !important;
+            }
+            
             .content-section::before {
                 content: "Kirmes in Kettig - Dienstplan 2025";
                 display: block !important;
-                position: fixed !important;
-                top: 0 !important;
-                left: 0 !important;
+                position: static !important; /* Changed from fixed to static */
                 width: 100% !important;
                 text-align: center !important;
                 font-size: 16pt !important;
@@ -188,29 +215,38 @@
                 margin-bottom: 5px !important;
                 padding-top: 5mm !important;
                 background: white !important;
+                border-bottom: 2px solid #ff0000 !important; /* Red line under title */
+                padding-bottom: 2px !important;
             }
             
             /* Add subtitle with search term below header */
             .content-section > div::before {
                 content: var(--print-subtitle);
                 display: block !important;
+                position: static !important; /* Ensure position is static */
                 text-align: center !important;
                 font-size: 14pt !important;
-                font-weight: normal !important;
+                font-weight: bold !important; /* Make the person name bold */
                 margin-bottom: 15px !important;
-                color: #333 !important;
+                color: #000 !important; /* Darker color to match PDF */
+                border-bottom: 1px dotted #ccc !important;
+                padding-bottom: 10px !important;
             }
             
-            /* Footer with date */
+            /* Footer with date and personalized message */
             .content-section > div::after {
-                content: "Ausgedruckt am " var(--print-date);
+                content: var(--print-footer);
                 display: block !important;
+                position: static !important; /* Ensure position is static */
                 text-align: center !important;
-                font-size: 8pt !important;
+                font-size: 9pt !important;
                 margin-top: 10px !important;
                 color: #666 !important;
-                border-top: 1px solid #ddd !important;
-                padding-top: 5px !important;
+                border-top: 0 !important; /* Remove border */
+                padding-top: 10px !important;
+                white-space: pre !important; /* Preserve newlines in content */
+                line-height: 1.4 !important;
+                font-style: italic !important;
             }
             
             /* Make the task cards more compact */
@@ -235,15 +271,7 @@
                 margin-top: 0 !important;
             }
             
-            /* Add print footer with date using JavaScript date function directly */
-            .content-section::after {
-                content: "Ausgedruckt am " var(--print-date);
-                display: block;
-                text-align: center;
-                font-size: 12px;
-                margin-top: 30px;
-                color: #666 !important;
-            }
+            /* Allow the subtitle to show by NOT removing the ::after element */
         }
         * {
             margin: 0;
@@ -1535,10 +1563,69 @@
                                             const subtitle = searchTerm 
                                                 ? `"Aufgaben für: ${searchTerm}"` 
                                                 : `"Alle Aufgaben"`;
-                                            document.documentElement.style.setProperty('--print-subtitle', subtitle);
+                                            
+                                            // Create a more detailed subtitle when printing for a specific person
+                                            if (searchTerm) {
+                                                const taskCount = filteredTasks.length;
+                                                const taskText = taskCount === 1 ? "Aufgabe" : "Aufgaben";
+                                                // Create subtitle showing "Aufgaben für [Person Name]" as in the PDF screenshot
+                                                const subtitle = `Aufgaben für ${searchTerm}`;
+                                                document.documentElement.style.setProperty('--print-subtitle', subtitle);
+                                                
+                                                // Set personalized footer
+                                                let personalizedFooter = `"Vielen Dank für deine Unterstützung bei der Kirmes in Kettig 2025, ${searchTerm}!"`;
+                                                document.documentElement.style.setProperty('--print-footer', personalizedFooter);
+                                            } else {
+                                                document.documentElement.style.setProperty('--print-subtitle', `"Alle Aufgaben (${filteredTasks.length})"`);
+                                                document.documentElement.style.setProperty('--print-footer', `"Ausgedruckt am ${currentDate}"`);
+                                            }
+                                            
+                                            // Add date below the footer for all prints
+                                            const dateDiv = document.createElement('div');
+                                            dateDiv.style.position = 'fixed';
+                                            dateDiv.style.bottom = '5mm';
+                                            dateDiv.style.right = '10mm';
+                                            dateDiv.style.fontSize = '8pt';
+                                            dateDiv.style.color = '#999';
+                                            dateDiv.style.zIndex = '9999';
+                                            dateDiv.style.fontStyle = 'italic';
+                                            dateDiv.innerHTML = `Ausgedruckt am ${currentDate}`;
+                                            document.body.appendChild(dateDiv);
+                                            
+                                            // Remove the date div after printing
+                                            setTimeout(() => {
+                                                document.body.removeChild(dateDiv);
+                                            }, 1000);
+                                            
+                                            // Optimize the layout for single-page printing by temporarily 
+                                            // modifying some style properties
+                                            const contentDiv = document.querySelector('.content-section > div');
+                                            const taskCards = document.querySelectorAll('.task-card');
+                                            
+                                            // Store original styles to restore after printing
+                                            const originalStyles = {
+                                                contentMargin: contentDiv.style.margin,
+                                                taskCardMargin: Array.from(taskCards).map(card => card.style.marginBottom)
+                                            };
+                                            
+                                            // Apply tight layout if there are only a few tasks
+                                            if (filteredTasks.length <= 5) {
+                                                taskCards.forEach(card => {
+                                                    card.style.marginBottom = '4px';
+                                                    card.style.padding = '5px';
+                                                });
+                                            }
                                             
                                             // Trigger print dialog immediately
                                             window.print();
+                                            
+                                            // Restore original styles after printing
+                                            setTimeout(() => {
+                                                contentDiv.style.margin = originalStyles.contentMargin;
+                                                taskCards.forEach((card, index) => {
+                                                    card.style.marginBottom = originalStyles.taskCardMargin[index];
+                                                });
+                                            }, 1000);
                                         }}
                                         style={{ 
                                             padding: '4px 12px', 
@@ -1855,6 +1942,7 @@
     </script>
 </body>
 </html>
+
 
 
 
