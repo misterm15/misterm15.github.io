@@ -5,6 +5,56 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kirmes in Kettig - Dienstplan 2025</title>
     
+    <!-- Pure HTML fixed bottom navigation that always works -->
+    <style>
+        /* Fixed bottom navigation */
+        .fixed-bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: #222;
+            border-top: 2px solid gold;
+            height: 60px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 999999;
+        }
+        
+        .bottom-nav-button {
+            width: 50px;
+            height: 50px;
+            background-color: gold;
+            color: black;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+        
+        /* Debug indicator for mobile */
+        .mobile-indicator {
+            position: fixed;
+            bottom: 80px;
+            left: 0;
+            right: 0;
+            background-color: red;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            z-index: 999999;
+            font-weight: bold;
+            font-size: 16px;
+        }
+    </style>
+</head>
+    
     <!-- Inter Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -401,6 +451,21 @@
         
         /* Mobile optimizations */
         @media (max-width: 768px) {
+            body:after {
+                content: "MOBILE VIEW ACTIVE";
+                position: fixed;
+                bottom: 120px;
+                left: 0;
+                right: 0;
+                background-color: red;
+                color: white;
+                padding: 10px;
+                font-size: 20px;
+                text-align: center;
+                z-index: 999999;
+                font-weight: bold;
+            }
+            
             .filter-container {
                 padding: 10px;
             }
@@ -505,7 +570,7 @@
             
             /* Add extra padding to content to offset fixed header */
             .main-layout {
-                padding-top: 250px !important; /* Increased padding to ensure content is below the header */
+                padding-top: 100px !important; /* Reduced padding because header will be hidden */
             }
             
             /* Instructions on mobile */
@@ -514,9 +579,9 @@
                 min-height: 36px !important;
             }
             
-            /* Force complete hiding for Firefox and all browsers */
+            /* SUPER AGGRESSIVE HIDING for all browsers */
             .header-section:not(.sticky-visible) {
-                transform: translateY(-500%) !important; /* Move much further off-screen */
+                transform: translateY(-1000%) !important; /* Move way off-screen */
                 opacity: 0 !important;
                 pointer-events: none !important;
                 visibility: hidden !important; /* Firefox compatibility */
@@ -527,6 +592,10 @@
                 margin: 0 !important;
                 max-height: 0 !important; /* Additional height restriction */
                 clip-path: polygon(0 0, 0 0, 0 0, 0 0) !important; /* Hide using clip-path */
+                width: 0 !important; /* Reduce width to 0 */
+                padding: 0 !important; /* Remove padding */
+                border: none !important; /* Remove border */
+                min-height: 0 !important; /* Force min-height to 0 */
                 padding: 0 !important;
             }
             
@@ -1073,9 +1142,32 @@
     </style>
 </head>
 <body>
+    <!-- Mobile Debug Indicator - Always visible on mobile -->
+    <div class="mobile-indicator" id="mobileIndicator">MOBILE VIEW ACTIVE</div>
+    
+    <!-- Fixed Bottom Navigation - Will always be visible and functional -->
+    <div class="fixed-bottom-nav">
+        <button 
+            class="bottom-nav-button" 
+            onclick="window.scrollTo({top: 0, behavior: 'smooth'});"
+        >↑</button>
+    </div>
+    
     <!-- Modern clean background -->
     
     <div id="root"></div>
+    
+    <script>
+        // Show/hide mobile indicator based on screen width
+        function updateMobileIndicator() {
+            document.getElementById('mobileIndicator').style.display = 
+                window.innerWidth <= 768 ? 'block' : 'none';
+        }
+        
+        // Initialize on load and resize
+        window.addEventListener('load', updateMobileIndicator);
+        window.addEventListener('resize', updateMobileIndicator);
+    </script>
     
     <script type="text/babel">
         const { useState, useEffect } = React;
@@ -1349,26 +1441,55 @@
                 const handleScroll = () => {
                     const currentScrollY = window.scrollY;
                     
-                    // Show header when scrolling up or at top, hide when scrolling down
-                    if (currentScrollY <= 10) {
-                        // Always show at top
-                        setHeaderVisible(true);
-                        
-                        // If we're at the top, expand instructions again
-                        if (currentScrollY === 0) {
-                            setIsExpanded(true);
-                        }
-                    } else if (currentScrollY < lastScrollY) {
-                        // Scrolling up - more sensitive on mobile
-                        if (lastScrollY - currentScrollY > 10) {
+                    // MOBILE-ONLY LOGIC: Hide header completely as soon as scrolling starts
+                    if (window.innerWidth <= 768) {
+                        // On mobile, just hide the header completely unless we're at the top
+                        if (currentScrollY <= 5) {
                             setHeaderVisible(true);
+                            setIsExpanded(false); // Keep instructions collapsed on mobile
+                        } else {
+                            // ULTRA AGGRESSIVE HIDING: Use both React state and direct DOM manipulation
+                            setHeaderVisible(false);
+                            setIsExpanded(false);
+                            
+                            // Force hide with direct DOM manipulation for maximum compatibility
+                            const header = document.querySelector('.header-section');
+                            if (header) {
+                                header.style.cssText = `
+                                    display: none !important;
+                                    visibility: hidden !important;
+                                    opacity: 0 !important;
+                                    height: 0 !important;
+                                    overflow: hidden !important;
+                                    transform: translateY(-1000%) !important;
+                                    position: absolute !important;
+                                    pointer-events: none !important;
+                                    clip-path: polygon(0 0, 0 0, 0 0, 0 0) !important;
+                                    width: 0 !important;
+                                    margin: 0 !important;
+                                    padding: 0 !important;
+                                    border: 0 !important;
+                                    min-height: 0 !important;
+                                    max-height: 0 !important;
+                                `;
+                                header.classList.remove('sticky-visible');
+                            }
                         }
                     } else {
-                        // Scrolling down - hide header immediately on mobile
-                        setHeaderVisible(false);
-                        
-                        // Always collapse instructions when hiding header
-                        setIsExpanded(false);
+                        // On desktop, use standard header behavior
+                        if (currentScrollY <= 10) {
+                            setHeaderVisible(true);
+                        } else if (currentScrollY < lastScrollY && lastScrollY - currentScrollY > 10) {
+                            setHeaderVisible(true); 
+                        } else if (currentScrollY > lastScrollY && currentScrollY - lastScrollY > 10) {
+                            setHeaderVisible(false);
+                        }
+                    }
+                    
+                    // Update the display state of our fixed bottom navigation
+                    const bottomNav = document.querySelector('.fixed-bottom-nav');
+                    if (bottomNav) {
+                        bottomNav.style.display = currentScrollY > 100 ? 'flex' : 'none';
                     }
                     
                     setLastScrollY(currentScrollY);
@@ -1448,7 +1569,7 @@
                         <div className="filter-container">
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                                 <h1 style={{ color: '#FFD700', margin: 0, fontSize: '2rem' }}>
-                                    Dienstplan 2025 test
+                                    Dienstplan 2025 te
                                 </h1>
                                 
                                 {/* Toggle Button for Instructions */}
@@ -1887,6 +2008,32 @@
                     
                     {/* Scrollable Content */}
                     <div className="content-section">
+                        {/* In-content scroll button */}
+                        <button
+                            style={{
+                                position: 'sticky',
+                                top: '10px',
+                                margin: '0 auto 15px auto',
+                                display: 'block',
+                                width: '40px',
+                                height: '40px',
+                                borderRadius: '50%',
+                                backgroundColor: 'rgba(255, 0, 0, 0.9)',
+                                color: 'white',
+                                fontSize: '20px',
+                                border: '2px solid white',
+                                cursor: 'pointer',
+                                zIndex: 100,
+                                boxShadow: '0 0 10px rgba(0, 0, 0, 0.5)',
+                                fontWeight: 'bold',
+                            }}
+                            onClick={() => {
+                                window.scrollTo({top: 0, behavior: 'smooth'});
+                            }}
+                            title="Nach oben scrollen"
+                        >
+                            ↑
+                        </button>
                         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
                             {filteredTasks.map((task, index) => (
                                 <div key={index} className="task-card" style={{
@@ -2088,21 +2235,20 @@
                             position: 'fixed',
                             bottom: '20px',
                             right: '20px',
-                            width: '48px',
-                            height: '48px',
+                            width: '50px',
+                            height: '50px',
                             borderRadius: '50%',
-                            backgroundColor: 'rgba(255, 215, 0, 0.9)',
-                            color: '#000',
-                            border: 'none',
-                            display: lastScrollY > 100 ? 'flex' : 'none', /* Show based on scroll position */
+                            backgroundColor: 'red', /* Changed to red for visibility */
+                            color: 'white',
+                            border: '2px solid white',
+                            display: 'flex', /* ALWAYS VISIBLE */
                             alignItems: 'center',
                             justifyContent: 'center',
                             fontSize: '24px',
                             cursor: 'pointer',
-                            zIndex: 9999, /* Increased z-index to ensure visibility */
-                            boxShadow: '0 4px 15px rgba(0, 0, 0, 0.5)',
+                            zIndex: 100000, /* Maximum z-index */
+                            boxShadow: '0 0 15px black',
                             fontWeight: 'bold',
-                            opacity: 0.9,
                         }}
                         title="Nach oben"
                     >
@@ -2320,6 +2466,40 @@
                 checkScrollPosition();
             }
         }, 1000);
+    </script>
+    
+    <!-- Ultra reliable scroll button that doesn't depend on anything -->
+    <button 
+        id="ultra-reliable-scroll-button"
+        style="
+            position: fixed;
+            bottom: 150px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: blue;
+            color: white;
+            font-size: 24px;
+            border: 2px solid white;
+            cursor: pointer;
+            z-index: 999999;
+            box-shadow: 0 0 10px black;
+            display: none;
+        "
+        onclick="window.scrollTo(0,0);"
+    >↑</button>
+    
+    <script>
+        // Show the ultra-reliable button when scrolled
+        window.addEventListener('scroll', function() {
+            var btn = document.getElementById('ultra-reliable-scroll-button');
+            if (window.scrollY > 100) {
+                btn.style.display = 'block';
+            } else {
+                btn.style.display = 'none';
+            }
+        });
     </script>
 </body>
 </html>
