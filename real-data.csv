@@ -1,0 +1,137 @@
+﻿Tag;Standort;Zeit;Aufgabe;Benötigt;Zugewiesen;Status;Zugewiesene_Personen;Task_ID
+Freitag;Aufbau;10:00-18:00;Aufbaudienst Freitag;50;14;Unvollständig;"Alina Rudolph; Andre Alsbach; Dominik Alsbach; Doreen Dammann; Elias Höfer; Fabian Balmes; Fynn Hommer; Julia Wolf; Katrin Manns; Lara Sonntag; Lena Wilbert; Leonie Wilke; Marcus Rohm; Marian Baum";Freitag, 22.08.25-10:00-18:00-Aufbaudienst Freitag
+Freitag;Bierbrunnen;17:00-19:00;Bierbrunnen (Platz oben);2;2;Vollständig;"Alessia Schneider; Anne Klein";Freitag, 22.08.25-17:00-19:00-Bierbrunnen (Platz oben)
+Freitag;Bierbrunnen;19:00-22:00;Bierbrunnen (Platz oben);6;6;Vollständig;"Lorena Schmehl; Luca Sonntag; Lucas Crisólogo Oña; Lucas Freimuth; Marcel Schneider; Martin Müller";Freitag, 22.08.25-19:00-22:00-Bierbrunnen (Platz oben)
+Freitag;Bierbrunnen;22:00-01:00;Bierbrunnen (Platz oben);6;6;Vollständig;"Hector Smill Jimenez Medina; Ihrlich maximilian; Irene Korb; Raya Hommer; Ruth  Schüller; Sabine Aßenmacher";Freitag, 22.08.25-22:00-01:00-Bierbrunnen (Platz oben)
+Freitag;Bierbrunnen;01:00-03:30;Bierbrunnen (Platz oben);6;6;Vollständig;"Alina Rudolph; Anne Klein; Dennis Feldmann; Doreen Dammann; Fynn Hommer; Marcel Schneider";Freitag, 22.08.25-01:00-03:30-Bierbrunnen (Platz oben)
+Freitag;Biertheke;19:00-22:00;Biertheke Zelt;7;7;Vollständig;"Alessia Schneider; Alex Laux; Alina Rudolph; Andre Alsbach; Benedikt Luipers; Carina Alsbach; Thorsten Jechel";Freitag, 22.08.25-19:00-22:00-Biertheke Zelt
+Freitag;Biertheke;19:00-21:30;Bedienungs- & Biertheke (Platz Mitte);6;6;Vollständig;"Marcus Rohm; Marian Baum; Matteo Kaufmann; Melanie Berlt; Melanie Tadda; Mona Eichelsbacher";Freitag, 22.08.25-19:00-21:30-Bedienungs- & Biertheke (Platz Mitte)
+Freitag;Biertheke;21:30-00:00;Bedienungs- & Biertheke (Platz Mitte);7;7;Vollständig;"Bianca Wilke; Carolin Korb; Chiara Thielen; Christoph Rünz; Daniel Schorbach; Michael Sonntag; Mona Eichelsbacher";Freitag, 22.08.25-21:30-00:00-Bedienungs- & Biertheke (Platz Mitte)
+Freitag;Biertheke;22:00-01:00;Biertheke Zelt;12;12;Vollständig;"Justin Gregor; Katharina Ehlscheid; Katrin Manns; Katrin Volk; Klein Leon; Silke Dommershausen; Simon Zeyen; Stefan Kretschmann; Stefanie Spurzem; Sven Kusenbach; Verena Kusenbach; Victoria Binnes";Freitag, 22.08.25-22:00-01:00-Biertheke Zelt
+Freitag;Biertheke;00:00-03:00;Bedienungs- & Biertheke (Platz Mitte);5;0;Unvollständig;;Freitag, 22.08.25-00:00-03:00-Bedienungs- & Biertheke (Platz Mitte)
+Freitag;Biertheke;00:00-03:00;Bedienungs- & Biertheke (Platz Mitte);5;0;Unvollständig;;Freitag, 22.08.25-00:00-03:00-Bedienungs- & Biertheke (Platz Mitte)
+Freitag;Biertheke;01:00-03:30;Biertheke Zelt;10;10;Vollständig;"Petra Zils-Brunetzki; Sabine Aßenmacher; Silke Dommershausen; Stefan Kretschmann; Sven Kusenbach; Thomas Kretschmann; Thorsten Moskopp; Tim Kleemann; Verena Kusenbach; Yannick Feldmann";Freitag, 22.08.25-01:00-03:30-Biertheke Zelt
+Freitag;Cocktailstand;20:30-23:30;Cocktailstand (Platz Mitte);3;3;Vollständig;"Andrea Bruchhof; Anja Klein; Luis Cannavo";Freitag, 22.08.25-20:30-23:30-Cocktailstand (Platz Mitte)
+Freitag;Cocktailstand;23:30-02:30;Cocktailstand (Platz Mitte);3;3;Vollständig;"Christian Wolf; Christopher Scheuer; Marcus Rohm";Freitag, 22.08.25-23:30-02:30-Cocktailstand (Platz Mitte)
+Freitag;Weinbrunnen;19:00-21:00;Weinbrunnen;2;0;Unvollständig;;Freitag, 22.08.25-19:00-21:00-Weinbrunnen
+Freitag;Weinbrunnen;21:00-23:00;Weinbrunnen;2;0;Unvollständig;;Freitag, 22.08.25-21:00-23:00-Weinbrunnen
+Freitag;Weinbrunnen;23:00-01:00;Weinbrunnen;2;0;Unvollständig;;Freitag, 22.08.25-23:00-01:00-Weinbrunnen
+Freitag;Sektbar;21:00-23:00;Sektbar;2;0;Unvollständig;;Freitag, 22.08.25-21:00-23:00-Sektbar
+Freitag;Sektbar;23:00-01:00;Sektbar;3;0;Unvollständig;;Freitag, 22.08.25-23:00-01:00-Sektbar
+Freitag;Sektbar;01:00-03:30;Sektbar;2;0;Unvollständig;;Freitag, 22.08.25-01:00-03:30-Sektbar
+Freitag;Bonbude;17:00-19:00;Bonbude;2;0;Unvollständig;;Freitag, 22.08.25-17:00-19:00-Bonbude
+Freitag;Bonbude;19:00-21:30;Bonbude;3;0;Unvollständig;;Freitag, 22.08.25-19:00-21:30-Bonbude
+Freitag;Bonbude;21:30-00:00;Bonbude;3;0;Unvollständig;;Freitag, 22.08.25-21:30-00:00-Bonbude
+Freitag;Bonbude;00:00-02:30;Bonbude;2;0;Unvollständig;;Freitag, 22.08.25-00:00-02:30-Bonbude
+Freitag;Bändchen;19:00-21:30;Bändchen Verkauf (Andernacher Str.);4;0;Unvollständig;;Freitag, 22.08.25-19:00-21:30-Bändchen Verkauf (Andernacher Str.)
+Freitag;Gläser sammeln;20:00-22:00;Gläser sammeln;6;0;Unvollständig;;Freitag, 22.08.25-20:00-22:00-Gläser sammeln
+Freitag;Gläser sammeln;22:00-02:00;Gläser sammeln;3;0;Unvollständig;;Freitag, 22.08.25-22:00-02:00-Gläser sammeln
+Samstag;Aufräumen;10:00-18:00;Aufräumen;5;0;Unvollständig;;Samstag, 23.08.25-10:00-18:00-Aufräumen
+Samstag;Bierbrunnen;17:00-20:30;Bierbrunnen (Platz oben);5;0;Unvollständig;;Samstag, 23.08.25-17:00-20:30-Bierbrunnen (Platz oben)
+Samstag;Bierbrunnen;20:30-23:00;Bierbrunnen (Platz oben);6;0;Unvollständig;;Samstag, 23.08.25-20:30-23:00-Bierbrunnen (Platz oben)
+Samstag;Bierbrunnen;23:00-01:30;Bierbrunnen (Platz oben);6;0;Unvollständig;;Samstag, 23.08.25-23:00-01:30-Bierbrunnen (Platz oben)
+Samstag;Bierbrunnen;01:30-04:00;Bierbrunnen (Platz oben);4;0;Unvollständig;;Samstag, 23.08.25-01:30-04:00-Bierbrunnen (Platz oben)
+Samstag;Cocktailstand;20:30-23:30;Cocktailstand (Platz Mitte);2;0;Unvollständig;;Samstag, 23.08.25-20:30-23:30-Cocktailstand (Platz Mitte)
+Samstag;Cocktailstand;23:30-02:30;Cocktailstand (Platz Mitte);2;0;Unvollständig;;Samstag, 23.08.25-23:30-02:30-Cocktailstand (Platz Mitte)
+Samstag;Kölschbrunnen;17:30-20:30;Kölschbrunnen (Andernacher Str.);3;0;Unvollständig;;Samstag, 23.08.25-17:30-20:30-Kölschbrunnen (Andernacher Str.)
+Samstag;Kölschbrunnen;20:30-23:00;Kölschbrunnen (Andernacher Str.);4;0;Unvollständig;;Samstag, 23.08.25-20:30-23:00-Kölschbrunnen (Andernacher Str.)
+Samstag;Kölschbrunnen;23:00-02:00;Kölschbrunnen (Andernacher Str.);3;0;Unvollständig;;Samstag, 23.08.25-23:00-02:00-Kölschbrunnen (Andernacher Str.)
+Samstag;Biertheke;18:00-20:30;Bedienungs- & Biertheke (Platz Mitte);6;0;Unvollständig;;Samstag, 23.08.25-18:00-20:30-Bedienungs- & Biertheke (Platz Mitte)
+Samstag;Biertheke;20:00-22:30;Biertheke Zelt;11;0;Unvollständig;;Samstag, 23.08.25-20:00-22:30-Biertheke Zelt
+Samstag;Biertheke;20:30-23:00;Bedienungs- & Biertheke (Platz Mitte);6;0;Unvollständig;;Samstag, 23.08.25-20:30-23:00-Bedienungs- & Biertheke (Platz Mitte)
+Samstag;Biertheke;22:30-01:00;Biertheke Zelt;13;0;Unvollständig;;Samstag, 23.08.25-22:30-01:00-Biertheke Zelt
+Samstag;Biertheke;23:00-01:30;Bedienungs- & Biertheke (Platz Mitte);6;0;Unvollständig;;Samstag, 23.08.25-23:00-01:30-Bedienungs- & Biertheke (Platz Mitte)
+Samstag;Biertheke;01:00-03:30;Biertheke Zelt;7;0;Unvollständig;;Samstag, 23.08.25-01:00-03:30-Biertheke Zelt
+Samstag;Biertheke;01:30-03:00;Bedienungs- & Biertheke (Platz Mitte);4;0;Unvollständig;;Samstag, 23.08.25-01:30-03:00-Bedienungs- & Biertheke (Platz Mitte)
+Samstag;Bonbude;17:00-20:30;Bonbude;3;0;Unvollständig;;Samstag, 23.08.25-17:00-20:30-Bonbude
+Samstag;Bonbude;20:30-23:00;Bonbude;3;0;Unvollständig;;Samstag, 23.08.25-20:30-23:00-Bonbude
+Samstag;Bonbude;23:00-01:30;Bonbude;2;0;Unvollständig;;Samstag, 23.08.25-23:00-01:30-Bonbude
+Samstag;Bonbude;01:30-04:00;Bonbude;2;0;Unvollständig;;Samstag, 23.08.25-01:30-04:00-Bonbude
+Samstag;Sektbar;21:00-23:00;Sektbar;2;0;Unvollständig;;Samstag, 23.08.25-21:00-23:00-Sektbar
+Samstag;Sektbar;23:00-01:00;Sektbar;3;0;Unvollständig;;Samstag, 23.08.25-23:00-01:00-Sektbar
+Samstag;Sektbar;01:00-03:30;Sektbar;3;0;Unvollständig;;Samstag, 23.08.25-01:00-03:30-Sektbar
+Samstag;Bändchen;19:00-21:30;Bändchen-Verkauf (Andernacher Str.);4;0;Unvollständig;;Samstag, 23.08.25-19:00-21:30-Bändchen-Verkauf (Andernacher Str.)
+Samstag;Weinbrunnen;18:30-21:00;Weinbrunnen;2;0;Unvollständig;;Samstag, 23.08.25-18:30-21:00-Weinbrunnen
+Samstag;Weinbrunnen;21:00-23:30;Weinbrunnen;2;0;Unvollständig;;Samstag, 23.08.25-21:00-23:30-Weinbrunnen
+Samstag;Weinbrunnen;23:30-02:00;Weinbrunnen;2;0;Unvollständig;;Samstag, 23.08.25-23:30-02:00-Weinbrunnen
+Sonntag;Bierbrunnen;12:30-15:00;Bierbrunnen (Platz oben);4;0;Unvollständig;;Sonntag, 24.08.25-12:30-15:00-Bierbrunnen (Platz oben)
+Sonntag;Bierbrunnen;15:00-17:30;Bierbrunnen (Platz oben);8;0;Unvollständig;;Sonntag, 24.08.25-15:00-17:30-Bierbrunnen (Platz oben)
+Sonntag;Bierbrunnen;17:30-20:00;Bierbrunnen (Platz oben);6;0;Unvollständig;;Sonntag, 24.08.25-17:30-20:00-Bierbrunnen (Platz oben)
+Sonntag;Bierbrunnen;20:00-22:30;Bierbrunnen (Platz oben);5;0;Unvollständig;;Sonntag, 24.08.25-20:00-22:30-Bierbrunnen (Platz oben)
+Sonntag;Bierbrunnen;22:30-01:00;Bierbrunnen (Platz oben);4;0;Unvollständig;;Sonntag, 24.08.25-22:30-01:00-Bierbrunnen (Platz oben)
+Sonntag;Biertheke;10:00-12:30;Bedienungs- & Biertheke (Platz Mitte);4;0;Unvollständig;;Sonntag, 24.08.25-10:00-12:30-Bedienungs- & Biertheke (Platz Mitte)
+Sonntag;Biertheke;12:30-15:00;Bedienungs- & Biertheke (Platz Mitte);5;0;Unvollständig;;Sonntag, 24.08.25-12:30-15:00-Bedienungs- & Biertheke (Platz Mitte)
+Sonntag;Biertheke;15:00-17:30;Bedienungs- & Biertheke (Platz Mitte);8;0;Unvollständig;;Sonntag, 24.08.25-15:00-17:30-Bedienungs- & Biertheke (Platz Mitte)
+Sonntag;Biertheke;17:30-20:00;Biertheke Zelt;8;0;Unvollständig;;Sonntag, 24.08.25-17:30-20:00-Biertheke Zelt
+Sonntag;Biertheke;17:30-20:00;Bedienungs- & Biertheke (Platz Mitte);11;0;Unvollständig;;Sonntag, 24.08.25-17:30-20:00-Bedienungs- & Biertheke (Platz Mitte)
+Sonntag;Biertheke;20:00-22:30;Biertheke Zelt;6;0;Unvollständig;;Sonntag, 24.08.25-20:00-22:30-Biertheke Zelt
+Sonntag;Biertheke;20:00-23:00;Bedienungs- & Biertheke (Platz Mitte);5;0;Unvollständig;;Sonntag, 24.08.25-20:00-23:00-Bedienungs- & Biertheke (Platz Mitte)
+Sonntag;Biertheke;22:30-01:00;Biertheke Zelt;5;0;Unvollständig;;Sonntag, 24.08.25-22:30-01:00-Biertheke Zelt
+Sonntag;Biertheke;01:00-03:30;Biertheke Zelt;4;0;Unvollständig;;Sonntag, 24.08.25-01:00-03:30-Biertheke Zelt
+Sonntag;Cocktailstand;19:00-22:00;Cocktailstand (Platz Mitte);2;0;Unvollständig;;Sonntag, 24.08.25-19:00-22:00-Cocktailstand (Platz Mitte)
+Sonntag;Cocktailstand;22:00-01:00;Cocktailstand (Platz Mitte);2;0;Unvollständig;;Sonntag, 24.08.25-22:00-01:00-Cocktailstand (Platz Mitte)
+Sonntag;Kölschbrunnen;12:30-15:00;Kölschbrunnen (Andernacher Str.);3;0;Unvollständig;;Sonntag, 24.08.25-12:30-15:00-Kölschbrunnen (Andernacher Str.)
+Sonntag;Kölschbrunnen;15:00-17:30;Kölschbrunnen (Andernacher Str.);6;0;Unvollständig;;Sonntag, 24.08.25-15:00-17:30-Kölschbrunnen (Andernacher Str.)
+Sonntag;Kölschbrunnen;17:30-20:00;Kölschbrunnen (Andernacher Str.);4;0;Unvollständig;;Sonntag, 24.08.25-17:30-20:00-Kölschbrunnen (Andernacher Str.)
+Sonntag;Kölschbrunnen;20:00-22:30;Kölschbrunnen (Andernacher Str.);3;0;Unvollständig;;Sonntag, 24.08.25-20:00-22:30-Kölschbrunnen (Andernacher Str.)
+Sonntag;Kölschbrunnen;22:30-01:00;Kölschbrunnen (Andernacher Str.);2;0;Unvollständig;;Sonntag, 24.08.25-22:30-01:00-Kölschbrunnen (Andernacher Str.)
+Sonntag;Sektbar;21:00-23:30;Sektbar;2;0;Unvollständig;;Sonntag, 24.08.25-21:00-23:30-Sektbar
+Sonntag;Sektbar;23:30-02:00;Sektbar;2;0;Unvollständig;;Sonntag, 24.08.25-23:30-02:00-Sektbar
+Sonntag;Bonbude;10:00-12:30;Bonbude;2;0;Unvollständig;;Sonntag, 24.08.25-10:00-12:30-Bonbude
+Sonntag;Bonbude;12:30-15:00;Bonbude;2;0;Unvollständig;;Sonntag, 24.08.25-12:30-15:00-Bonbude
+Sonntag;Bonbude;15:00-17:30;Bonbude;2;0;Unvollständig;;Sonntag, 24.08.25-15:00-17:30-Bonbude
+Sonntag;Bonbude;17:30-20:00;Bonbude;2;0;Unvollständig;;Sonntag, 24.08.25-17:30-20:00-Bonbude
+Sonntag;Bonbude;20:00-22:30;Bonbude;2;0;Unvollständig;;Sonntag, 24.08.25-20:00-22:30-Bonbude
+Sonntag;Bonbude;22:30-01:00;Bonbude;2;0;Unvollständig;;Sonntag, 24.08.25-22:30-01:00-Bonbude
+Sonntag;Bonbude;01:00-03:30;Bonbude;2;0;Unvollständig;;Sonntag, 24.08.25-01:00-03:30-Bonbude
+Sonntag;Frühstücksbuffet;08:00-13:00;Frühstücksbuffet;8;0;Unvollständig;;Sonntag, 24.08.25-08:00-13:00-Frühstücksbuffet
+Sonntag;Weinbrunnen;10:00-13:00;Bedienung Bereich 2: Oberer Platz, Stehtische, kl. Zelt, Weinbrunnen;2;0;Unvollständig;;Sonntag, 24.08.25-10:00-13:00-Bedienung Bereich 2: Oberer Platz, Stehtische, kl. Zelt, Weinbrunnen
+Sonntag;Weinbrunnen;11:30-14:00;Weinbrunnen;2;0;Unvollständig;;Sonntag, 24.08.25-11:30-14:00-Weinbrunnen
+Sonntag;Weinbrunnen;14:00-16:30;Weinbrunnen;2;0;Unvollständig;;Sonntag, 24.08.25-14:00-16:30-Weinbrunnen
+Sonntag;Weinbrunnen;16:30-19:00;Weinbrunnen;2;0;Unvollständig;;Sonntag, 24.08.25-16:30-19:00-Weinbrunnen
+Sonntag;Weinbrunnen;19:00-21:30;Weinbrunnen;2;0;Unvollständig;;Sonntag, 24.08.25-19:00-21:30-Weinbrunnen
+Sonntag;Weinbrunnen;21:30-00:00;Weinbrunnen;2;0;Unvollständig;;Sonntag, 24.08.25-21:30-00:00-Weinbrunnen
+Sonntag;Kaffee/Kuchen;14:30-18:00;Kaffee/Kuchen plus Spülmobil;5;0;Unvollständig;;Sonntag, 24.08.25-14:30-18:00-Kaffee/Kuchen plus Spülmobil
+Sonntag;Bedienung;10:00-13:00;Bedienung Bereich 1: Zelt bis zum Biergartenzaun;2;0;Unvollständig;;Sonntag, 24.08.25-10:00-13:00-Bedienung Bereich 1: Zelt bis zum Biergartenzaun
+Montag;Aufbau;13:00-18:00;Aufbau Bühne + Bänke;14;0;Unvollständig;;Montag, 25.08.25-13:00-18:00-Aufbau Bühne + Bänke
+Montag;Bierbrunnen;15:00-18:00;Bierbrunnen;5;0;Unvollständig;;Montag, 25.08.25-15:00-18:00-Bierbrunnen
+Montag;Bierbrunnen;18:00-21:00;Bierbrunnen;5;0;Unvollständig;;Montag, 25.08.25-18:00-21:00-Bierbrunnen
+Montag;Bierbrunnen;21:00-01:00;Bierbrunnen;4;0;Unvollständig;;Montag, 25.08.25-21:00-01:00-Bierbrunnen
+Montag;Biertheke;17:00-20:00;Bedienungs- & Biertheke (Platz Mitte);5;0;Unvollständig;;Montag, 25.08.25-17:00-20:00-Bedienungs- & Biertheke (Platz Mitte)
+Montag;Biertheke;18:00-21:00;Biertheke Zelt;5;0;Unvollständig;;Montag, 25.08.25-18:00-21:00-Biertheke Zelt
+Montag;Biertheke;20:00-23:00;Bedienungs- & Biertheke (Platz Mitte);5;0;Unvollständig;;Montag, 25.08.25-20:00-23:00-Bedienungs- & Biertheke (Platz Mitte)
+Montag;Biertheke;21:00-00:00;Biertheke Zelt;5;0;Unvollständig;;Montag, 25.08.25-21:00-00:00-Biertheke Zelt
+Montag;Biertheke;23:00-02:00;Bedienungs- & Biertheke (Platz Mitte);3;0;Unvollständig;;Montag, 25.08.25-23:00-02:00-Bedienungs- & Biertheke (Platz Mitte)
+Montag;Biertheke;00:00-02:30;Biertheke Zelt;4;0;Unvollständig;;Montag, 25.08.25-00:00-02:30-Biertheke Zelt
+Montag;Bonbude;15:00-18:00;Bonbude;2;0;Unvollständig;;Montag, 25.08.25-15:00-18:00-Bonbude
+Montag;Bonbude;18:00-21:00;Bonbude;2;0;Unvollständig;;Montag, 25.08.25-18:00-21:00-Bonbude
+Montag;Bonbude;21:00-00:00;Bonbude;2;0;Unvollständig;;Montag, 25.08.25-21:00-00:00-Bonbude
+Montag;Bonbude;00:00-02:30;Bonbude;2;0;Unvollständig;;Montag, 25.08.25-00:00-02:30-Bonbude
+Montag;Sektbar;21:00-00:00;Sektbar;2;0;Unvollständig;;Montag, 25.08.25-21:00-00:00-Sektbar
+Montag;Sektbar;00:00-02:30;Sektbar;2;0;Unvollständig;;Montag, 25.08.25-00:00-02:30-Sektbar
+Montag;Kölschbrunnen;14:00-17:00;Kölschbrunnen (Andernacher Str.);4;0;Unvollständig;;Montag, 25.08.25-14:00-17:00-Kölschbrunnen (Andernacher Str.)
+Montag;Kölschbrunnen;17:00-20:00;Kölschbrunnen (Andernacher Str.);3;0;Unvollständig;;Montag, 25.08.25-17:00-20:00-Kölschbrunnen (Andernacher Str.)
+Montag;Kölschbrunnen;20:00-23:00;Kölschbrunnen (Andernacher Str.);3;0;Unvollständig;;Montag, 25.08.25-20:00-23:00-Kölschbrunnen (Andernacher Str.)
+Montag;Weinbrunnen;16:00-19:00;Weinbrunnen;2;0;Unvollständig;;Montag, 25.08.25-16:00-19:00-Weinbrunnen
+Montag;Weinbrunnen;19:00-22:00;Weinbrunnen;2;0;Unvollständig;;Montag, 25.08.25-19:00-22:00-Weinbrunnen
+Montag;Weinbrunnen;22:00-01:00;Weinbrunnen;2;0;Unvollständig;;Montag, 25.08.25-22:00-01:00-Weinbrunnen
+Dienstag;Eieraufschlagteam;10:00-13:00;Eieraufschlagteam;7;0;Unvollständig;;Dienstag, 26.08.25-10:00-13:00-Eieraufschlagteam
+Dienstag;Bierbrunnen;15:00-18:00;Bierbrunnen;2;0;Unvollständig;;Dienstag, 26.08.25-15:00-18:00-Bierbrunnen
+Dienstag;Bierbrunnen;18:00-21:00;Bierbrunnen;4;0;Unvollständig;;Dienstag, 26.08.25-18:00-21:00-Bierbrunnen
+Dienstag;Bierbrunnen;21:00-00:00;Bierbrunnen;4;0;Unvollständig;;Dienstag, 26.08.25-21:00-00:00-Bierbrunnen
+Dienstag;Biertheke;15:00-18:00;Bedienungs- & Biertheke (Platz Mitte);3;0;Unvollständig;;Dienstag, 26.08.25-15:00-18:00-Bedienungs- & Biertheke (Platz Mitte)
+Dienstag;Biertheke;18:00-20:30;Biertheke Zelt;4;0;Unvollständig;;Dienstag, 26.08.25-18:00-20:30-Biertheke Zelt
+Dienstag;Biertheke;18:00-21:00;Bedienungs- & Biertheke (Platz Mitte);5;0;Unvollständig;;Dienstag, 26.08.25-18:00-21:00-Bedienungs- & Biertheke (Platz Mitte)
+Dienstag;Biertheke;20:30-23:00;Biertheke Zelt;4;0;Unvollständig;;Dienstag, 26.08.25-20:30-23:00-Biertheke Zelt
+Dienstag;Biertheke;21:00-00:00;Bedienungs- & Biertheke (Platz Mitte);4;0;Unvollständig;;Dienstag, 26.08.25-21:00-00:00-Bedienungs- & Biertheke (Platz Mitte)
+Dienstag;Bedienung;18:00-21:00;Bedienung Zelt;3;0;Unvollständig;;Dienstag, 26.08.25-18:00-21:00-Bedienung Zelt
+Dienstag;Kölschbrunnen;16:00-19:00;Kölschbrunnen (Andernacher Str.);2;0;Unvollständig;;Dienstag, 26.08.25-16:00-19:00-Kölschbrunnen (Andernacher Str.)
+Dienstag;Kölschbrunnen;19:00-22:00;Kölschbrunnen (Andernacher Str.);3;0;Unvollständig;;Dienstag, 26.08.25-19:00-22:00-Kölschbrunnen (Andernacher Str.)
+Dienstag;Weinbrunnen;16:00-18:30;Weinbrunnen;2;0;Unvollständig;;Dienstag, 26.08.25-16:00-18:30-Weinbrunnen
+Dienstag;Weinbrunnen;18:30-21:00;Weinbrunnen;2;0;Unvollständig;;Dienstag, 26.08.25-18:30-21:00-Weinbrunnen
+Dienstag;Weinbrunnen;21:00-00:00;Weinbrunnen;2;0;Unvollständig;;Dienstag, 26.08.25-21:00-00:00-Weinbrunnen
+Dienstag;Bonbude;15:00-18:00;Bonbude;2;0;Unvollständig;;Dienstag, 26.08.25-15:00-18:00-Bonbude
+Dienstag;Bonbude;18:00-21:00;Bonbude;2;0;Unvollständig;;Dienstag, 26.08.25-18:00-21:00-Bonbude
+Dienstag;Bonbude;21:00-00:00;Bonbude;2;0;Unvollständig;;Dienstag, 26.08.25-21:00-00:00-Bonbude
+Dienstag;Rührei;16:00-18:30;Rührei;4;0;Unvollständig;;Dienstag, 26.08.25-16:00-18:30-Rührei
+Dienstag;Kinderbelustigung;15:00-17:30;Kinderbelustigung;4;0;Unvollständig;;Dienstag, 26.08.25-15:00-17:30-Kinderbelustigung

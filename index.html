@@ -1,0 +1,1392 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kirmes in Kettig - Dienstplan 2025</title>
+    
+    <!-- Inter Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- React CDN -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel for JSX transformation -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Papa Parse for CSV processing -->
+    <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
+    
+    <!-- html2pdf for PDF export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <style>
+        /* Print styles */
+        @media print {
+            body, html {
+                height: auto !important;
+                overflow: visible !important;
+            }
+            
+            body * { 
+                visibility: hidden; 
+                background-color: white !important;
+                color: black !important;
+            }
+            
+            .content-section, .content-section * { 
+                visibility: visible; 
+                color: black !important;
+            }
+            
+            .content-section { 
+                position: absolute; 
+                left: 0; 
+                top: 0; 
+                width: 100%; 
+                background-color: white !important;
+                height: auto !important;
+                overflow: visible !important;
+            }
+            
+            .task-card {
+                break-inside: avoid !important;
+                page-break-inside: avoid !important;
+                border: 1px solid #ccc !important;
+                margin-bottom: 20px !important;
+                background-color: white !important;
+                box-shadow: none !important;
+            }
+            
+            .person-tag {
+                background-color: #f5f5f5 !important;
+                color: #333 !important;
+                border: 1px solid #ddd !important;
+            }
+            
+            .task-title {
+                color: #333 !important;
+                font-weight: bold !important;
+                border-bottom: 1px solid #ddd !important;
+            }
+            
+            .person-highlight {
+                font-weight: bold !important;
+                background: none !important;
+                color: black !important;
+            }
+            
+            @page { 
+                size: portrait; 
+                margin: 2cm; 
+            }
+            
+            .header-section,
+            .search-clear-btn,
+            .nav-btn,
+            .filter-container,
+            .secondary-filters,
+            .print-hide {
+                display: none !important;
+            }
+            
+            /* Add a header to the printout with search term */
+            .content-section::before {
+                content: "Kirmes in Kettig - Dienstplan 2025";
+                font-size: 24px;
+                font-weight: bold;
+                display: block;
+                text-align: center;
+                margin-bottom: 5px;
+                color: black !important;
+            }
+            
+            /* Add subtitle with search term */
+            .content-section::after {
+                content: var(--print-subtitle);
+                font-size: 18px;
+                display: block;
+                text-align: center;
+                margin-bottom: 20px;
+                color: #333 !important;
+                margin-top: 5px;
+            }
+            
+            /* Add print footer with date */
+            .content-section .task-card:last-child::after {
+                content: "Ausgedruckt am " var(--print-date);
+                display: block;
+                text-align: center;
+                font-size: 12px;
+                margin-top: 30px;
+                color: #666 !important;
+            }
+            
+            /* Add print footer with date using JavaScript date function directly */
+            .content-section::after {
+                content: "Ausgedruckt am " var(--print-date);
+                display: block;
+                text-align: center;
+                font-size: 12px;
+                margin-top: 30px;
+                color: #666 !important;
+            }
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #1e1e1e 0%, #0a0a0a 100%);
+            min-height: 100vh;
+            margin: 0;
+            overflow-x: hidden;
+        }
+        
+        /* Main layout for task viewer */
+        .main-layout {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        
+        /* Sticky header with filters */
+        .header-section {
+            background: rgba(30, 30, 30, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding: 20px;
+        }
+        
+        /* Scrollable content area */
+        .content-section {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        
+        /* Filter container */
+        .filter-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        /* Mobile optimizations */
+        @media (max-width: 768px) {
+            .filter-container {
+                padding: 10px;
+            }
+            
+            .filter-container h1 {
+                font-size: 1.5rem !important;
+                margin: 0 !important;
+            }
+            
+            .filter-container p {
+                font-size: 0.9rem !important;
+                margin: 3px 0 0 0 !important;
+            }
+            
+            .primary-search {
+                margin: 15px auto !important;
+            }
+            
+            .primary-search input {
+                padding: 15px 40px 15px 15px !important;
+                font-size: 16px !important;
+            }
+            
+            .secondary-filters {
+                gap: 8px !important;
+                margin-top: 10px !important;
+            }
+            
+            .filter-select {
+                padding: 8px 10px !important;
+                font-size: 12px !important;
+                min-width: 90px !important;
+            }
+            
+            .nav-btn {
+                padding: 6px 12px !important;
+                font-size: 11px !important;
+            }
+            
+            /* Mobile task cards */
+            .content-section {
+                padding: 10px !important;
+            }
+            
+            .task-card {
+                padding: 15px !important;
+                margin-bottom: 10px !important;
+            }
+            
+            .task-title {
+                font-size: 1.1rem !important;
+            }
+            
+            .task-header {
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                gap: 10px !important;
+            }
+            
+            .task-date-time {
+                align-items: flex-start !important;
+                text-align: left !important;
+            }
+            
+            .task-info {
+                flex-direction: column !important;
+                gap: 8px !important;
+                align-items: flex-start !important;
+            }
+            
+            .task-info span {
+                font-size: 0.9rem !important;
+            }
+            
+            .person-tag {
+                font-size: 12px !important;
+                padding: 4px 8px !important;
+            }
+        }
+        
+        /* Primary search (name) */
+        .primary-search {
+            width: 100%;
+            max-width: 600px;
+            margin: 20px auto;
+            position: relative;
+        }
+        
+        .primary-search input {
+            width: 100%;
+            padding: 20px 50px 20px 20px; /* Add right padding for X button */
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            color: #FFD700;
+            font-size: 18px;
+            text-align: center;
+        }
+        
+        .primary-search input::placeholder {
+            color: rgba(255, 215, 0, 0.6);
+        }
+        
+        .primary-search input:focus {
+            outline: none;
+            border-color: #FFD700;
+            background: rgba(0, 0, 0, 0.4);
+            box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.2);
+        }
+        
+        /* Clear button inside search field */
+        .search-clear-btn {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: rgba(255, 215, 0, 0.7);
+            font-size: 18px;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+        }
+        
+        .search-clear-btn:hover {
+            background: rgba(255, 215, 0, 0.1);
+            color: #FFD700;
+        }
+        
+        /* Secondary filters */
+        .secondary-filters {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+        
+        /* Filter controls */
+        .filter-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .filter-select, .filter-input {
+            padding: 10px 14px;
+            border: 1px solid rgba(255, 215, 0, 0.25);
+            border-radius: 6px;
+            background: rgba(0, 0, 0, 0.25);
+            color: #FFD700;
+            font-size: 13px;
+            min-width: 110px;
+        }
+        
+        .filter-select:focus, .filter-input:focus {
+            outline: none;
+            border-color: #FFD700;
+            box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.15);
+        }
+        
+        .filter-select option {
+            background: #1a1a1a;
+            color: #FFD700;
+        }
+        
+        /* Task search combo input */
+        .task-search-combo {
+            position: relative;
+            min-width: 200px;
+        }
+        
+        .task-search-combo input {
+            width: 100%;
+            padding: 10px 50px 10px 14px; /* More space for dropdown arrow and clear button */
+            border: 1px solid rgba(255, 215, 0, 0.25);
+            border-radius: 6px;
+            background: rgba(0, 0, 0, 0.25);
+            color: #FFD700;
+            font-size: 13px;
+        }
+        
+        .task-search-combo input::placeholder {
+            color: rgba(255, 215, 0, 0.6);
+        }
+        
+        .task-search-combo input:focus {
+            outline: none;
+            border-color: #FFD700;
+            box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.15);
+        }
+        
+        .task-dropdown-btn {
+            position: absolute;
+            right: 28px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: rgba(255, 215, 0, 0.7);
+            font-size: 12px;
+            cursor: pointer;
+            padding: 2px;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .task-dropdown-btn:hover {
+            background: rgba(255, 215, 0, 0.1);
+            color: #FFD700;
+        }
+        
+        .task-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.95);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 6px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            margin-top: 2px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+        
+        .task-dropdown-item {
+            padding: 8px 12px;
+            color: #FFD700;
+            cursor: pointer;
+            font-size: 13px;
+            border-bottom: 1px solid rgba(255, 215, 0, 0.1);
+        }
+        
+        .task-dropdown-item:hover {
+            background: rgba(255, 215, 0, 0.1);
+        }
+        
+        .task-dropdown-item:last-child {
+            border-bottom: none;
+        }
+
+        /* Task search input */
+        .task-search {
+            position: relative;
+            min-width: 200px;
+        }
+        
+        .task-search input {
+            width: 100%;
+            padding: 10px 30px 10px 14px;
+            border: 1px solid rgba(255, 215, 0, 0.25);
+            border-radius: 6px;
+            background: rgba(0, 0, 0, 0.25);
+            color: #FFD700;
+            font-size: 13px;
+        }
+        
+        .task-search input::placeholder {
+            color: rgba(255, 215, 0, 0.6);
+        }
+        
+        .task-search input:focus {
+            outline: none;
+            border-color: #FFD700;
+            box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.15);
+        }
+        
+        .task-search-clear {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: rgba(255, 215, 0, 0.7);
+            font-size: 14px;
+            cursor: pointer;
+            padding: 2px;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .task-search-clear:hover {
+            background: rgba(255, 215, 0, 0.1);
+            color: #FFD700;
+        }
+        
+
+        
+        .container {
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .glass-card {
+            background: rgba(255, 215, 0, 0.05); /* Subtle gold tint */
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 215, 0, 0.15); /* Subtle gold border */
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            padding: 40px;
+            width: 100%;
+            max-width: 1200px;
+            animation: fadeInUp 0.6s ease-out;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .login-card {
+            max-width: 400px;
+            text-align: center;
+        }
+        
+        .title {
+            color: #FFD700; /* Kirmes gold */
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        .subtitle {
+            color: rgba(255, 215, 0, 0.8); /* Gold tint */
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        
+        .form-label {
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 500;
+            margin-bottom: 8px;
+            display: block;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 15px 20px;
+            border: 1px solid rgba(255, 215, 0, 0.3); /* Gold border */
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.3); /* Dark background */
+            color: #FFD700; /* Gold text */
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .form-input::placeholder {
+            color: rgba(255, 215, 0, 0.6); /* Gold placeholder */
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #FFD700; /* Gold focus border */
+            background: rgba(0, 0, 0, 0.4);
+            box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.2);
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #FFD700, #FFA500); /* Kirmes gold gradient */
+            color: #000; /* Black text on gold */
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 15px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(255, 215, 0, 0.3);
+            background: linear-gradient(135deg, #FFA500, #FFD700);
+        }
+        
+        .error-message {
+            color: #ff6b6b;
+            background: rgba(255, 107, 107, 0.1);
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border: 1px solid rgba(255, 107, 107, 0.3);
+        }
+        
+        .search-input {
+            width: 100%;
+            max-width: 600px;
+            padding: 20px;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            color: #FFD700;
+            font-size: 18px;
+            margin: 0 auto 30px auto;
+            display: block;
+        }
+        
+        .search-input::placeholder {
+            color: rgba(255, 215, 0, 0.6);
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: #FFD700;
+            background: rgba(0, 0, 0, 0.4);
+            box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.2);
+        }
+        
+        .nav-buttons {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .nav-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 215, 0, 0.2); /* Gold tint */
+            color: #FFD700; /* Gold text */
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+        }
+        
+        .nav-btn:hover, .nav-btn.active {
+            background: rgba(255, 215, 0, 0.3);
+            transform: translateY(-1px);
+            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.2);
+        }
+        
+        .status-message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .status-success {
+            background: rgba(40, 167, 69, 0.2);
+            border: 1px solid rgba(40, 167, 69, 0.4);
+            color: #28a745;
+        }
+        
+        .status-info {
+            background: rgba(23, 162, 184, 0.2);
+            border: 1px solid rgba(23, 162, 184, 0.4);
+            color: #17a2b8;
+        }
+    </style>
+</head>
+<body>
+    <!-- Modern clean background -->
+    
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        
+        // Local Storage utilities
+        const StorageKeys = {
+            TASKS: 'kirmes_tasks_data',
+            LOGIN_STATUS: 'kirmes_login_status',
+            ADMIN_STATUS: 'kirmes_admin_status'
+        };
+        
+        const loadFromStorage = (key, defaultValue = null) => {
+            try {
+                const item = localStorage.getItem(key);
+                return item ? JSON.parse(item) : defaultValue;
+            } catch (error) {
+                console.error('Error loading from storage:', error);
+                return defaultValue;
+            }
+        };
+        
+        // CSV Processing
+        const processCSV = (csvText) => {
+            return new Promise((resolve, reject) => {
+                Papa.parse(csvText, {
+                    header: true,
+                    skipEmptyLines: true,
+                    delimiter: ';', // German CSV uses semicolon
+                    complete: function(results) {
+                        if (results.errors.length > 0) {
+                            console.error('CSV parsing errors:', results.errors);
+                        }
+                        
+                        // Transform CSV data to our format - MAINTAIN ORDER
+                        const tasks = [];
+                        
+                        results.data.forEach((row, index) => {
+                            // Parse assigned persons (separated by semicolon in quotes)
+                            const assignedPersons = row.Zugewiesene_Personen || '';
+                            const persons = assignedPersons.split(';').map(p => p.trim().replace(/"/g, '')).filter(p => p);
+                            
+                            // If there are no assigned persons, create a single task entry without persons
+                            if (persons.length === 0) {
+                                tasks.push({
+                                    id: `${index}-empty`,
+                                    originalOrder: index, // Keep original CSV order
+                                    name: '', // Empty name for unassigned tasks
+                                    task: row.Aufgabe || '',
+                                    date: row.Tag || '',
+                                    time: row.Zeit || '',
+                                    location: row.Standort || '',
+                                    taskId: row.Task_ID || '',
+                                    status: row.Status || ''
+                                });
+                            } else {
+                                // Create individual tasks for each person, but keep them grouped
+                                persons.forEach((person, personIndex) => {
+                                    tasks.push({
+                                        id: `${index}-${personIndex}`,
+                                        originalOrder: index, // Keep original CSV order
+                                        name: person,
+                                        task: row.Aufgabe || '',
+                                        date: row.Tag || '',
+                                        time: row.Zeit || '',
+                                        location: row.Standort || '',
+                                        taskId: row.Task_ID || '',
+                                        status: row.Status || ''
+                                    });
+                                });
+                            }
+                        });
+                        
+                        // Sort by original order to maintain chronological sequence - include ALL tasks
+                        const validTasks = tasks
+                            .filter(task => task.task && task.task.length > 0) // Only filter out tasks without task names
+                            .sort((a, b) => a.originalOrder - b.originalOrder);
+                        
+                        // Debug stats for task count
+                        const tasksByDay = {};
+                        validTasks.forEach(task => {
+                            if (!tasksByDay[task.date]) tasksByDay[task.date] = 0;
+                            tasksByDay[task.date]++;
+                        });
+                        
+                        const emptyTasks = validTasks.filter(task => !task.name || task.name.length === 0);
+                        
+                        resolve(validTasks);
+                    },
+                    error: function(error) {
+                        reject(error);
+                    }
+                });
+            });
+        };
+        
+        // Login Component - Password Only
+        const LoginPage = ({ onLogin, onWrongPassword, error }) => {
+            const [password, setPassword] = useState('');
+            
+            const handleLogin = (e) => {
+                e.preventDefault();
+                if (password === 'kirmes2025') {  // Main login password
+                    onLogin();
+                } else {
+                    onWrongPassword();
+                    setPassword(''); // Clear password field
+                }
+            };
+            
+            return (
+                <div className="container">
+                    <div className="glass-card login-card">
+                        <h1 className="title">Kirmes in Kettig</h1>
+                        <p className="subtitle">Dienstplan 2025</p>
+                        
+                        {error && (
+                            <div className="error-message">{error}</div>
+                        )}
+                        
+                        <form onSubmit={handleLogin}>
+                            <div className="form-group">
+                                <label className="form-label">Passwort eingeben</label>
+                                <input
+                                    type="password"
+                                    className="form-input"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    placeholder="Passwort für Dienstplan..."
+                                    required
+                                />
+                            </div>
+                            <button type="submit" className="btn">
+                                Dienstplan anzeigen
+                            </button>
+                        </form>
+                        
+                        <div style={{ marginTop: '20px', fontSize: '14px', color: 'rgba(255, 255, 255, 0.7)' }}>
+                            <p>Das Passwort findest du in der Kirmes WhatsApp Gruppe</p>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+        
+        // Task Viewer Component - Modern Layout with Filters
+        const TaskViewer = ({ tasks }) => {
+            const [searchTerm, setSearchTerm] = useState('');
+            const [selectedDay, setSelectedDay] = useState('');
+            const [selectedTask, setSelectedTask] = useState('');
+            const [taskSearchTerm, setTaskSearchTerm] = useState('');
+            const [showTaskDropdown, setShowTaskDropdown] = useState(false);
+            
+            // Get unique days and tasks for filters
+            const uniqueDays = [...new Set(tasks.map(task => task.date))].filter(Boolean);
+            const uniqueTasks = [...new Set(tasks.map(task => task.task))].filter(Boolean).sort();
+            
+            // Sort days in Kirmes order: Freitag, Samstag, Sonntag, Montag, Dienstag, Mittwoch
+            const dayOrder = ['Freitag', 'Samstag', 'Sonntag', 'Montag', 'Dienstag', 'Mittwoch'];
+            const sortedDays = uniqueDays.sort((a, b) => {
+                const indexA = dayOrder.indexOf(a);
+                const indexB = dayOrder.indexOf(b);
+                // If day not found in order, put it at the end
+                if (indexA === -1) return 1;
+                if (indexB === -1) return -1;
+                return indexA - indexB;
+            });
+            
+            // Filter tasks for dropdown based on search term
+            const filteredDropdownTasks = uniqueTasks.filter(task => 
+                task.toLowerCase().includes(taskSearchTerm.toLowerCase())
+            );
+            
+            // Handle task input changes
+            const handleTaskInputChange = (e) => {
+                const value = e.target.value;
+                setTaskSearchTerm(value);
+                setSelectedTask(''); // Clear selection when typing
+                setShowTaskDropdown(value.length > 0); // Show dropdown when typing
+            };
+            
+            const handleTaskSelect = (task) => {
+                setTaskSearchTerm(task);
+                setSelectedTask(task);
+                setShowTaskDropdown(false);
+            };
+            
+            const clearTaskSearch = () => {
+                setTaskSearchTerm('');
+                setSelectedTask('');
+                setShowTaskDropdown(false);
+            };
+            
+            // Group tasks by their original order (chronological)
+            const groupTasksByOriginal = (tasks) => {
+                const taskGroups = {};
+                tasks.forEach(task => {
+                    const key = `${task.date}-${task.time}-${task.location}-${task.task}`;
+                    if (!taskGroups[key]) {
+                        taskGroups[key] = {
+                            date: task.date,
+                            time: task.time,
+                            location: task.location,
+                            task: task.task,
+                            taskId: task.taskId,
+                            persons: []
+                        };
+                    }
+                    // Only add person if they exist (not empty for unassigned tasks)
+                    if (task.name && task.name.length > 0) {
+                        taskGroups[key].persons.push(task.name);
+                    }
+                });
+                return Object.values(taskGroups);
+            };
+            
+            const groupedTasks = groupTasksByOriginal(tasks);
+            
+            // Filter tasks based on all criteria
+            const filteredTasks = groupedTasks.filter(task => {
+                // For name search: if no search term, show all tasks
+                // If search term exists, show only tasks with matching persons
+                const matchesName = searchTerm.trim() === '' || 
+                    task.persons.some(person => 
+                        person.toLowerCase().includes(searchTerm.toLowerCase())
+                    );
+                
+                const matchesDay = selectedDay === '' || task.date === selectedDay;
+                
+                // Task filter: check both dropdown selection and search term
+                const matchesTask = (selectedTask === '' || task.task === selectedTask) &&
+                    (taskSearchTerm.trim() === '' || task.task.toLowerCase().includes(taskSearchTerm.toLowerCase()));
+                
+                return matchesName && matchesDay && matchesTask;
+            });
+            
+            return (
+                <div className="main-layout">
+                    {/* Sticky Header with Filters */}
+                    <div className="header-section">
+                        <div className="filter-container">
+                            <div>
+                                <h1 style={{ color: '#FFD700', margin: 0, fontSize: '2rem' }}>
+                                    Dienstplan 2025
+                                </h1>
+                                <p style={{ color: 'rgba(255, 215, 0, 0.8)', margin: '5px 0 0 0' }}>
+                                    Kirmes in Kettig
+                                </p>
+                            </div>
+                            
+                            {/* Primary Name Search */}
+                            <div className="primary-search">
+                                <input
+                                    type="text"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    placeholder="Nach Namen suchen..."
+                                />
+                                {/* Clear search button */}
+                                {searchTerm && (
+                                    <button
+                                        className="search-clear-btn"
+                                        onClick={() => setSearchTerm('')}
+                                        title="Suche löschen"
+                                    >
+                                        ✕
+                                    </button>
+                                )}
+                            </div>
+                            
+                            {/* Secondary Filters */}
+                            <div className="secondary-filters">
+                                {/* Day Filter */}
+                                <select 
+                                    className="filter-select"
+                                    value={selectedDay}
+                                    onChange={(e) => setSelectedDay(e.target.value)}
+                                >
+                                    <option value="">Alle Tage</option>
+                                    {sortedDays.map(day => (
+                                        <option key={day} value={day}>
+                                            {day === 'Freitag' ? 'Freitag, 22. August' : 
+                                             day === 'Samstag' ? 'Samstag, 23. August' :
+                                             day === 'Sonntag' ? 'Sonntag, 24. August' :
+                                             day === 'Montag' ? 'Montag, 25. August' :
+                                             day === 'Dienstag' ? 'Dienstag, 26. August' :
+                                             day === 'Mittwoch' ? 'Mittwoch, 27. August' :
+                                             day}
+                                        </option>
+                                    ))}
+                                </select>
+                                
+                                {/* Task Search Combo */}
+                                <div className="task-search-combo">
+                                    <input
+                                        type="text"
+                                        value={taskSearchTerm}
+                                        onChange={handleTaskInputChange}
+                                        onFocus={() => setShowTaskDropdown(taskSearchTerm.length > 0)}
+                                        onBlur={() => setTimeout(() => setShowTaskDropdown(false), 200)} // Delay to allow click
+                                        placeholder="Aufgabe suchen..."
+                                    />
+                                    
+                                    {/* Dropdown arrow */}
+                                    <button
+                                        className="task-dropdown-btn"
+                                        onClick={() => setShowTaskDropdown(!showTaskDropdown)}
+                                        title="Aufgaben anzeigen"
+                                    >
+                                        ▼
+                                    </button>
+                                    
+                                    {/* Clear button */}
+                                    {taskSearchTerm && (
+                                        <button
+                                            className="task-search-clear"
+                                            onClick={clearTaskSearch}
+                                            title="Suche löschen"
+                                        >
+                                            ✕
+                                        </button>
+                                    )}
+                                    
+                                    {/* Dropdown list */}
+                                    {showTaskDropdown && (
+                                        <div className="task-dropdown">
+                                            {filteredDropdownTasks.length > 0 ? (
+                                                filteredDropdownTasks.map((task, index) => (
+                                                    <div
+                                                        key={index}
+                                                        className="task-dropdown-item"
+                                                        onClick={() => handleTaskSelect(task)}
+                                                    >
+                                                        {task}
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <div className="task-dropdown-item" style={{ color: 'rgba(255, 215, 0, 0.6)', cursor: 'default' }}>
+                                                    Keine passenden Aufgaben gefunden
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                                
+                                {/* Clear Filters - Always visible for consistent positioning */}
+                                <button 
+                                    className="nav-btn"
+                                    onClick={() => {
+                                        setSearchTerm('');
+                                        setSelectedDay('');
+                                        setSelectedTask('');
+                                        clearTaskSearch();
+                                    }}
+                                    style={{ 
+                                        padding: '8px 16px', 
+                                        fontSize: '12px',
+                                        opacity: (searchTerm || selectedDay || selectedTask || taskSearchTerm) ? 1 : 0.5
+                                    }}
+                                    disabled={!(searchTerm || selectedDay || selectedTask || taskSearchTerm)}
+                                >
+                                    {searchTerm ? '👥 Alle anzeigen' : '🔄 Reset'}
+                                </button>
+                            </div>
+                        </div>
+                        
+                        {/* Results Info - Only show when searching for a person */}
+                        {searchTerm && (
+                            <div style={{ 
+                                maxWidth: '1200px', 
+                                margin: '15px auto 0 auto',
+                                padding: '10px 15px',
+                                background: 'rgba(40, 167, 69, 0.2)',
+                                border: '1px solid rgba(40, 167, 69, 0.4)',
+                                borderRadius: '8px',
+                                color: '#28a745',
+                                textAlign: 'center',
+                                fontSize: '14px'
+                            }}>
+                                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+                                    <span>{filteredTasks.length} Aufgaben gefunden {searchTerm && `für "${searchTerm}"`}</span>
+                                    
+                                    {/* WhatsApp sharing button */}
+                                    <button 
+                                        className="nav-btn"
+                                        onClick={() => {
+                                            // Format tasks as text
+                                            const tasksText = filteredTasks
+                                                .map(t => `📍 ${t.task}:\n${t.date}, ${t.time}`)
+                                                .join('\n\n');
+                                            const whatsappText = `Kirmes Aufgaben für ${searchTerm}:\n\n${tasksText}`;
+                                            // Open WhatsApp with pre-filled message
+                                            window.open(`https://wa.me/?text=${encodeURIComponent(whatsappText)}`);
+                                        }}
+                                        style={{ 
+                                            padding: '4px 12px', 
+                                            fontSize: '12px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '5px'
+                                        }}
+                                        title="An WhatsApp senden"
+                                    >
+                                        <span style={{fontSize: '16px'}}>📱</span> Per WhatsApp teilen
+                                    </button>
+                                    
+                                    {/* PDF Export button */}
+                                    <button 
+                                        className="nav-btn"
+                                        onClick={() => {
+                                            // Create a temporary div for PDF generation
+                                            const pdfContent = document.createElement('div');
+                                            pdfContent.innerHTML = `
+                                                <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: 0 auto;">
+                                                    <h1 style="text-align: center; color: #FFD700; margin-bottom: 10px;">Kirmes in Kettig - Dienstplan 2025</h1>
+                                                    <h2 style="text-align: center; margin-bottom: 30px;">Aufgaben für ${searchTerm}</h2>
+                                                    ${filteredTasks.map((task, idx) => `
+                                                        <div style="margin-bottom: 25px; padding: 15px; border: 1px solid #ccc; border-radius: 10px; page-break-inside: avoid;">
+                                                            <h3 style="margin-top: 0; color: #FFD700;">📍 ${task.task}</h3>
+                                                            <p><strong>📅 Datum:</strong> ${
+                                                                task.date === 'Freitag' ? 'Freitag, 22. August' : 
+                                                                task.date === 'Samstag' ? 'Samstag, 23. August' :
+                                                                task.date === 'Sonntag' ? 'Sonntag, 24. August' :
+                                                                task.date === 'Montag' ? 'Montag, 25. August' :
+                                                                task.date === 'Dienstag' ? 'Dienstag, 26. August' :
+                                                                task.date === 'Mittwoch' ? 'Mittwoch, 27. August' :
+                                                                task.date
+                                                            }</p>
+                                                            <p><strong>🕐 Uhrzeit:</strong> ${task.time}</p>
+                                                            <p><strong>👥 Zugewiesene Personen:</strong></p>
+                                                            <ul style="padding-left: 20px;">
+                                                                ${task.persons.map(person => `
+                                                                    <li style="${person.toLowerCase().includes(searchTerm.toLowerCase()) ? 'font-weight: bold;' : ''}">${person}</li>
+                                                                `).join('')}
+                                                            </ul>
+                                                        </div>
+                                                    `).join('')}
+                                                    <div style="text-align: center; margin-top: 30px; font-size: 12px; color: #888;">
+                                                        Generiert am ${new Date().toLocaleDateString('de-DE')} für ${searchTerm}
+                                                    </div>
+                                                </div>
+                                            `;
+                                            
+                                            // Generate PDF with proper configuration
+                                            const opt = {
+                                                margin:       [10, 10],
+                                                filename:     `Kirmes_Dienstplan_${searchTerm.replace(/\s+/g, '_')}.pdf`,
+                                                image:        { type: 'jpeg', quality: 0.98 },
+                                                html2canvas:  { scale: 2, useCORS: true },
+                                                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                                            };
+                                            
+                                            html2pdf().set(opt).from(pdfContent).save();
+                                        }}
+                                        style={{ 
+                                            padding: '4px 12px', 
+                                            fontSize: '12px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '5px'
+                                        }}
+                                        title="Als PDF speichern"
+                                    >
+                                        <span style={{fontSize: '16px'}}>📄</span> Als PDF speichern
+                                    </button>
+                                    
+                                    {/* Print button */}
+                                    <button 
+                                        className="nav-btn"
+                                        onClick={() => {
+                                            // Set the current date as a CSS variable before printing
+                                            const currentDate = new Date().toLocaleDateString('de-DE');
+                                            document.documentElement.style.setProperty('--print-date', `"${currentDate}"`);
+                                            
+                                            // Set the subtitle with search term
+                                            const subtitle = searchTerm 
+                                                ? `"Aufgaben für: ${searchTerm}"` 
+                                                : `"Alle Aufgaben"`;
+                                            document.documentElement.style.setProperty('--print-subtitle', subtitle);
+                                            
+                                            // Trigger print dialog
+                                            window.print();
+                                        }}
+                                        style={{ 
+                                            padding: '4px 12px', 
+                                            fontSize: '12px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '5px'
+                                        }}
+                                        title="Aufgaben drucken"
+                                    >
+                                        <span style={{fontSize: '16px'}}>🖨️</span> Drucken
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                    
+                    {/* Scrollable Content */}
+                    <div className="content-section">
+                        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+                            {filteredTasks.map((task, index) => (
+                                <div key={index} className="task-card" style={{
+                                    background: 'rgba(255, 255, 255, 0.08)',
+                                    borderRadius: '12px',
+                                    padding: '20px',
+                                    marginBottom: '15px',
+                                    border: '1px solid rgba(255, 215, 0, 0.15)',
+                                    transition: 'all 0.3s ease'
+                                }}>
+                                    <div style={{
+                                        borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+                                        paddingBottom: '10px',
+                                        marginBottom: '10px'
+                                    }}>
+                                        <div className="task-header" style={{
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'flex-start',
+                                            gap: '15px',
+                                            flexWrap: 'wrap'
+                                        }}>
+                                            <div style={{ flex: 1 }}>
+                                                <h3 className="task-title" style={{ 
+                                                    color: '#FFD700', 
+                                                    fontSize: '1.3rem', 
+                                                    fontWeight: '600',
+                                                    margin: '0 0 8px 0'
+                                                }}>
+                                                    📍 {task.task}
+                                                </h3>
+                                            </div>
+                                            
+                                            <div className="task-date-time" style={{
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                alignItems: 'flex-end',
+                                                gap: '4px',
+                                                textAlign: 'right'
+                                            }}>
+                                                <span style={{
+                                                    color: 'rgba(255, 255, 255, 0.9)',
+                                                    fontSize: '1rem',
+                                                    fontWeight: '600'
+                                                }}>
+                                                    📅 {task.date === 'Freitag' ? 'Freitag, 22. August' : 
+                                                         task.date === 'Samstag' ? 'Samstag, 23. August' :
+                                                         task.date === 'Sonntag' ? 'Sonntag, 24. August' :
+                                                         task.date === 'Montag' ? 'Montag, 25. August' :
+                                                         task.date === 'Dienstag' ? 'Dienstag, 26. August' :
+                                                         task.date === 'Mittwoch' ? 'Mittwoch, 27. August' :
+                                                         task.date}
+                                                </span>
+                                                <span style={{
+                                                    color: 'rgba(255, 255, 255, 0.8)',
+                                                    fontSize: '0.95rem'
+                                                }}>
+                                                    🕐 {task.time}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <h4 style={{ 
+                                            color: 'rgba(255, 255, 255, 0.9)', 
+                                            fontSize: '1rem',
+                                            marginBottom: '10px',
+                                            fontWeight: '500'
+                                        }}>
+                                            👥 Zugewiesene Personen ({task.persons.length}):
+                                        </h4>
+                                        <div style={{
+                                            display: 'flex',
+                                            flexWrap: 'wrap',
+                                            gap: '8px'
+                                        }}>
+                                            {task.persons.length > 0 ? (
+                                                task.persons.map((person, personIndex) => (
+                                                    <span key={personIndex} className="person-tag" style={{
+                                                        background: searchTerm && person.toLowerCase().includes(searchTerm.toLowerCase())
+                                                            ? 'rgba(255, 215, 0, 0.3)' // Highlight searched person
+                                                            : 'rgba(255, 255, 255, 0.15)',
+                                                        color: searchTerm && person.toLowerCase().includes(searchTerm.toLowerCase())
+                                                            ? '#000'
+                                                            : '#fff',
+                                                        padding: '6px 12px',
+                                                        borderRadius: '20px',
+                                                        fontSize: '14px',
+                                                        fontWeight: '500',
+                                                        border: searchTerm && person.toLowerCase().includes(searchTerm.toLowerCase())
+                                                            ? '1px solid rgba(255, 215, 0, 0.6)'
+                                                            : '1px solid rgba(255, 255, 255, 0.2)'
+                                                    }}>
+                                                        {person}
+                                                    </span>
+                                                ))
+                                            ) : (
+                                                <span style={{
+                                                    color: 'rgba(255, 255, 255, 0.5)',
+                                                    fontStyle: 'italic',
+                                                    fontSize: '14px'
+                                                }}>
+                                                    Noch keine Personen zugewiesen
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+        
+        // Main App Component - Simplified
+        const App = () => {
+            const [isLoggedIn, setIsLoggedIn] = useState(false);
+            const [tasks, setTasks] = useState([]);
+            const [error, setError] = useState('');
+            
+            // Load data from CSV file on component mount
+            useEffect(() => {
+                // Clear any existing cache first
+                if ('caches' in window) {
+                    caches.keys().then(function(names) {
+                        for (let name of names) caches.delete(name);
+                    });
+                }
+                
+                // Load CSV data
+                loadCSVFromFile();
+            }, []);
+            
+            const loadCSVFromFile = async () => {
+                try {
+                    // Force cache clear with multiple cache-busting techniques
+                    const timestamp = Date.now() + Math.random();
+                    const response = await fetch(`real-data.csv?t=${timestamp}&cb=${Math.random()}`, {
+                        cache: 'no-cache',
+                        headers: {
+                            'Cache-Control': 'no-cache, no-store, must-revalidate',
+                            'Pragma': 'no-cache',
+                            'Expires': '0'
+                        }
+                    });
+                    if (response.ok) {
+                        const csvText = await response.text();
+                        const processedTasks = await processCSV(csvText);
+                        setTasks(processedTasks);
+                        return;
+                    }
+                } catch (error) {
+                    // Silently handle error
+                }
+                
+                // No fallback data - if CSV fails to load, show empty state
+                setTasks([]);
+            };
+            
+            const handleLogin = () => {
+                // Complete cache clearing
+                localStorage.clear();
+                sessionStorage.clear();
+                
+                // Clear any cached fetch requests
+                if ('caches' in window) {
+                    caches.keys().then(function(names) {
+                        for (let name of names) caches.delete(name);
+                    });
+                }
+                
+
+                setIsLoggedIn(true);
+                setError('');
+                
+                // Force reload fresh CSV data with delay to ensure cache is cleared
+                setTimeout(() => {
+                    loadCSVFromFile();
+                }, 100);
+            };
+            
+            const handleWrongPassword = () => {
+                setError('Falsches Passwort. Bitte versuchen Sie es erneut.');
+            };
+            
+            if (!isLoggedIn) {
+                return <LoginPage onLogin={handleLogin} onWrongPassword={handleWrongPassword} error={error} />;
+            }
+            
+            return (
+                <TaskViewer 
+                    tasks={tasks} 
+                />
+            );
+        };
+        
+        // Render the app
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
+
+
+
