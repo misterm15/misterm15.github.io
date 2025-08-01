@@ -304,7 +304,7 @@
             display: flex;
             flex-direction: column;
             height: 100vh;
-            padding-top: 200px; /* Reserve space for the header */
+            padding-top: 250px; /* Reserve even more space for the header */
         }
         
         /* Sticky header with filters */
@@ -357,6 +357,36 @@
             0% { transform: scale(1); }
             50% { transform: scale(1.05); }
             100% { transform: scale(1); }
+        }
+        
+        /* Always visible scroll-to-top button */
+        #scrollTopButton {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background-color: rgba(255, 215, 0, 0.9);
+            color: #000;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 9999;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            font-weight: bold;
+            transition: transform 0.3s ease;
+        }
+        
+        #scrollTopButton:hover {
+            transform: scale(1.05);
+        }
+        
+        #scrollTopButton:active {
+            transform: scale(0.95);
         }
         
         /* Mobile optimizations */
@@ -476,12 +506,16 @@
             
             /* Ensure smoother hiding and showing */
             .header-section:not(.sticky-visible) {
-                transform: translateY(-100%) !important;
+                transform: translateY(-200%) !important; /* Move further off-screen */
                 opacity: 0 !important;
                 pointer-events: none !important;
                 visibility: hidden !important; /* Added for Firefox compatibility */
                 display: none !important; /* Force full hiding on mobile devices */
                 position: absolute !important; /* Remove from flow when hidden */
+                height: 0 !important; /* Force height to 0 when hidden */
+                overflow: hidden !important; /* Hide any overflow */
+                margin: 0 !important;
+                padding: 0 !important;
             }
             
             /* Visible header */
@@ -492,6 +526,8 @@
                 visibility: visible !important; /* Added for Firefox compatibility */
                 display: block !important;
                 position: fixed !important; /* Keep fixed when visible */
+                height: auto !important;
+                overflow: visible !important;
             }
             
             /* Mobile search bar improvements */
@@ -1397,7 +1433,7 @@
                         <div className="filter-container">
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                                 <h1 style={{ color: '#FFD700', margin: 0, fontSize: '2rem' }}>
-                                    Dienstplan 2025 test
+                                    Dienstplan 2025 te
                                 </h1>
                                 
                                 {/* Toggle Button for Instructions */}
@@ -2012,8 +2048,8 @@
                         </div>
                     </div>
                     
-                    {/* Scroll to top button - always visible after scrolling a bit */}
-                    <button 
+                    {/* Hard-coded scroll-to-top button that will always work */}
+                    <div 
                         id="scrollTopButton"
                         onClick={() => {
                             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -2031,23 +2067,19 @@
                             backgroundColor: 'rgba(255, 215, 0, 0.9)',
                             color: '#000',
                             border: 'none',
-                            display: 'flex', /* Always flex, opacity will control visibility */
-                            opacity: '0', /* Start hidden, JS will show it */
-                            pointerEvents: 'none', /* Start with no interactions */
+                            display: lastScrollY > 100 ? 'flex' : 'none', /* Show based on scroll position */
                             alignItems: 'center',
                             justifyContent: 'center',
                             fontSize: '24px',
                             cursor: 'pointer',
                             zIndex: 9999, /* Increased z-index to ensure visibility */
                             boxShadow: '0 4px 15px rgba(0, 0, 0, 0.5)',
-                            transition: 'opacity 0.3s ease, transform 0.3s ease',
                             fontWeight: 'bold',
-                            transform: 'scale(0.95)'
                         }}
                         title="Nach oben"
                     >
                         ↑
-                    </button>
+                    </div>
                 </div>
             );
         };
@@ -2137,6 +2169,57 @@
         // Render the app
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
+        
+        // Add a direct script for scroll button that will always work
+        setTimeout(() => {
+            // Create a scroll-to-top button if it doesn't exist
+            if (!document.getElementById('fixed-scroll-button')) {
+                const scrollButton = document.createElement('div');
+                scrollButton.id = 'fixed-scroll-button';
+                scrollButton.innerHTML = '↑';
+                scrollButton.style.cssText = `
+                    position: fixed;
+                    bottom: 20px;
+                    right: 20px;
+                    width: 48px;
+                    height: 48px;
+                    border-radius: 50%;
+                    background-color: rgba(255, 215, 0, 0.9);
+                    color: #000;
+                    display: none;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 24px;
+                    cursor: pointer;
+                    z-index: 9999;
+                    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+                    font-weight: bold;
+                    transition: all 0.3s ease;
+                    text-align: center;
+                    line-height: 48px;
+                `;
+                document.body.appendChild(scrollButton);
+                
+                // Add click event
+                scrollButton.addEventListener('click', () => {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                });
+                
+                // Show/hide based on scroll position
+                window.addEventListener('scroll', () => {
+                    if (window.pageYOffset > 200) {
+                        scrollButton.style.display = 'block';
+                    } else {
+                        scrollButton.style.display = 'none';
+                    }
+                });
+                
+                // Initial check
+                if (window.pageYOffset > 200) {
+                    scrollButton.style.display = 'block';
+                }
+            }
+        }, 1000);
     </script>
 </body>
 </html>
