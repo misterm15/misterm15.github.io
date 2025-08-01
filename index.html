@@ -311,12 +311,14 @@
             background: rgba(30, 30, 30, 0.95);
             backdrop-filter: blur(10px);
             border-bottom: 1px solid rgba(255, 215, 0, 0.2);
-            position: sticky;
+            position: fixed; /* Changed from sticky to fixed for consistent behavior */
             top: 0;
-            z-index: 100;
+            left: 0;
+            width: 100%;
+            z-index: 1000; /* Increased z-index */
             padding: 20px;
-            transition: transform 0.3s ease, box-shadow 0.3s ease, opacity 0.3s ease;
-            will-change: transform, opacity;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, opacity 0.3s ease, visibility 0.3s ease;
+            will-change: transform, opacity, visibility;
         }
         
         /* Special styling for header when sticked to top and visible */
@@ -473,6 +475,9 @@
                 transform: translateY(-100%) !important;
                 opacity: 0 !important;
                 pointer-events: none !important;
+                visibility: hidden !important; /* Added for Firefox compatibility */
+                display: none !important; /* Force full hiding on mobile devices */
+                position: absolute !important; /* Remove from flow when hidden */
             }
             
             /* Visible header */
@@ -480,6 +485,9 @@
                 transform: translateY(0) !important;
                 opacity: 1 !important;
                 pointer-events: auto !important;
+                visibility: visible !important; /* Added for Firefox compatibility */
+                display: block !important;
+                position: fixed !important; /* Keep fixed when visible */
             }
             
             /* Mobile search bar improvements */
@@ -1279,9 +1287,8 @@
                     // Going down (positive diff)
                     else if (diff > 10) {
                         setHeaderVisible(false);
-                        if (isExpanded) {
-                            setIsExpanded(false);
-                        }
+                        // Always collapse instructions when hiding header on mobile
+                        setIsExpanded(false);
                     }
                     
                     touchStartY = touchY;
@@ -1308,10 +1315,8 @@
                         // Scrolling down - hide header immediately on mobile
                         setHeaderVisible(false);
                         
-                        // When scrolling down, always collapse instructions
-                        if (isExpanded && currentScrollY > 30) {
-                            setIsExpanded(false);
-                        }
+                        // Always collapse instructions when hiding header
+                        setIsExpanded(false);
                     }
                     
                     setLastScrollY(currentScrollY);
@@ -1361,7 +1366,9 @@
                 <div className="main-layout">
                     {/* Smart Header with Filters - Hides on scroll down, Shows on scroll up */}
                     <div className={`header-section ${headerVisible ? 'sticky-visible' : ''}`} style={{
-                        opacity: headerVisible ? 1 : 0
+                        opacity: headerVisible ? 1 : 0,
+                        visibility: headerVisible ? 'visible' : 'hidden',
+                        display: headerVisible ? 'block' : 'none'
                     }}>
                         <div className="filter-container">
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
@@ -1394,7 +1401,7 @@
                             </div>
                             
                             {/* Collapsible Instructions Box */}
-                            {isExpanded && (
+                            {isExpanded && headerVisible && (
                                 <div style={{ 
                                     background: 'rgba(255, 255, 255, 0.1)',
                                     border: '1px solid rgba(255, 215, 0, 0.2)',
@@ -1403,7 +1410,8 @@
                                     marginBottom: '15px',
                                     fontSize: '14px',
                                     color: '#fff',
-                                    animation: 'fadeIn 0.3s ease'
+                                    animation: 'fadeIn 0.3s ease',
+                                    display: headerVisible ? 'block' : 'none' /* Added for Firefox compatibility */
                                 }}>
                                     <p style={{ margin: '0 0 5px 0', textAlign: 'center', fontWeight: 'bold' }}>
                                         🔍 So funktioniert die Suche:
@@ -1981,40 +1989,39 @@
                     </div>
                     
                     {/* Scroll to top button - visible when scrolled down */}
-                    {lastScrollY > 200 && (
-                        <button 
-                            onClick={() => {
-                                window.scrollTo({ top: 0, behavior: 'smooth' });
-                                // Also explicitly set state variables to ensure proper UI update
-                                setHeaderVisible(true);
-                                setIsExpanded(true);
-                            }}
-                            style={{
-                                position: 'fixed',
-                                bottom: '20px',
-                                right: '20px',
-                                width: '48px',
-                                height: '48px',
-                                borderRadius: '50%',
-                                backgroundColor: 'rgba(255, 215, 0, 0.9)',
-                                color: '#000',
-                                border: 'none',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                fontSize: '24px',
-                                cursor: 'pointer',
-                                zIndex: 999,
-                                boxShadow: '0 4px 15px rgba(0, 0, 0, 0.5)',
-                                transition: 'all 0.3s ease',
-                                fontWeight: 'bold',
-                                animation: 'fadeIn 0.3s ease'
-                            }}
-                            title="Nach oben"
-                        >
-                            ↑
-                        </button>
-                    )}
+                    {/* Removed conditional rendering to ensure button always shows when scrolled */}
+                    <button 
+                        onClick={() => {
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                            // Also explicitly set state variables to ensure proper UI update
+                            setHeaderVisible(true);
+                            setIsExpanded(true);
+                        }}
+                        style={{
+                            position: 'fixed',
+                            bottom: '20px',
+                            right: '20px',
+                            width: '48px',
+                            height: '48px',
+                            borderRadius: '50%',
+                            backgroundColor: 'rgba(255, 215, 0, 0.9)',
+                            color: '#000',
+                            border: 'none',
+                            display: lastScrollY > 100 ? 'flex' : 'none', /* Show when scrolled down */
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '24px',
+                            cursor: 'pointer',
+                            zIndex: 9999, /* Increased z-index to ensure visibility */
+                            boxShadow: '0 4px 15px rgba(0, 0, 0, 0.5)',
+                            transition: 'all 0.3s ease',
+                            fontWeight: 'bold',
+                            animation: 'fadeIn 0.3s ease'
+                        }}
+                        title="Nach oben"
+                    >
+                        ↑
+                    </button>
                 </div>
             );
         };
