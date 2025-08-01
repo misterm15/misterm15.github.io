@@ -20,6 +20,7 @@
             justify-content: center;
             align-items: center;
             z-index: 999999;
+            -webkit-tap-highlight-color: rgba(255,0,0,0.5); /* Visible feedback on tap */
         }
         
         .bottom-nav-button {
@@ -36,6 +37,15 @@
             cursor: pointer;
             border: 2px solid white;
             box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            -webkit-tap-highlight-color: rgba(255,0,0,0.5); /* Visible feedback on tap */
+            -webkit-user-select: none; /* Prevent text selection */
+            user-select: none;
+            touch-action: manipulation; /* Optimization for touch */
+        }
+        
+        .bottom-nav-button:active {
+            background-color: #ff6600; /* Color change on active state */
+            transform: scale(0.95); /* Slight scale down when pressed */
         }
         
         /* Debug indicator for mobile */
@@ -371,15 +381,23 @@
             transition: all 0.3s ease;
             will-change: transform, opacity, visibility, height;
             overflow: hidden;
+            -webkit-transform: translate3d(0,0,0); /* Force hardware acceleration */
+            transform: translate3d(0,0,0);
+            -webkit-backface-visibility: hidden; /* Prevent flickering */
+            backface-visibility: hidden;
         }
         
         /* Special styling for header when sticked to top and visible */
         .header-section.sticky-visible {
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-            opacity: 1;
-            transform: translateY(0);
-            height: auto;
-            overflow: visible;
+            opacity: 1 !important;
+            transform: translateY(0) !important;
+            -webkit-transform: translateY(0) !important;
+            height: auto !important;
+            overflow: visible !important;
+            visibility: visible !important;
+            display: block !important;
+            top: 0 !important;
         }
         
         /* Scrollable content area */
@@ -451,6 +469,7 @@
         
         /* Mobile optimizations */
         @media (max-width: 768px) {
+            /* Additional debug element */
             body:after {
                 content: "MOBILE VIEW ACTIVE";
                 position: fixed;
@@ -464,6 +483,19 @@
                 text-align: center;
                 z-index: 999999;
                 font-weight: bold;
+            }
+            
+            /* Force hardware acceleration for smoother animations on mobile */
+            * {
+                -webkit-transform: translateZ(0);
+                -moz-transform: translateZ(0);
+                -ms-transform: translateZ(0);
+                -o-transform: translateZ(0);
+                transform: translateZ(0);
+                -webkit-backface-visibility: hidden;
+                -moz-backface-visibility: hidden;
+                -ms-backface-visibility: hidden;
+                backface-visibility: hidden;
             }
             
             .filter-container {
@@ -1147,15 +1179,102 @@
     
     <!-- Fixed Bottom Navigation - Will always be visible and functional -->
     <div class="fixed-bottom-nav">
+        <!-- Added multiple buttons with different approaches for maximum compatibility -->
         <button 
             class="bottom-nav-button" 
-            onclick="window.scrollTo({top: 0, behavior: 'smooth'});"
+            onclick="scrollToTopAndFixHeader(); return false;"
+            style="background-color: red; color: white; font-size: 30px; font-weight: bold;"
         >↑</button>
+        
+        <!-- Fallback button using href with hash for native browser scrolling -->
+        <a 
+            href="#top" 
+            onclick="setTimeout(function() { scrollToTopAndFixHeader(); }, 100); return true;" 
+            style="position: absolute; right: 20px; width: 50px; height: 50px; background-color: gold; color: black; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 24px; font-weight: bold; text-decoration: none; border: 2px solid black;"
+        >#</a>
     </div>
+    
+    <!-- Invisible anchor for hash navigation -->
+    <a id="top" name="top" style="position: absolute; top: 0;"></a>
+    
+    <script>
+        // Global function to scroll to top and force header to show
+        function scrollToTopAndFixHeader() {
+            // First scroll to top
+            window.scrollTo({top: 0, behavior: 'smooth'});
+            
+            // Then explicitly show the header with multiple approaches to ensure it works
+            try {
+                // 1. Direct DOM manipulation
+                var header = document.querySelector('.header-section');
+                if (header) {
+                    // Force override all CSS that might be hiding it
+                    header.style.cssText = 'display: block !important; visibility: visible !important; opacity: 1 !important; transform: translateY(0) !important; position: fixed !important; top: 0 !important; height: auto !important; width: 100% !important; overflow: visible !important; z-index: 999999 !important;';
+                    header.classList.add('sticky-visible');
+                    
+                    // Also set inline styles individually as a fallback
+                    header.style.display = 'block';
+                    header.style.visibility = 'visible';
+                    header.style.opacity = '1';
+                    header.style.transform = 'translateY(0)';
+                    header.style.position = 'fixed';
+                    header.style.top = '0';
+                }
+                
+                // 2. Use React state update through the exposed global function
+                if (window.updateHeaderState) {
+                    window.updateHeaderState(true);
+                    console.log("React state updated via global function");
+                } else {
+                    console.log("Warning: window.updateHeaderState is not available");
+                }
+                
+                // 3. Dispatch a custom event for additional listeners
+                document.dispatchEvent(new CustomEvent('showHeader'));
+                
+                // Show debug alert with scrollY position
+                alert("Scroll button clicked! Header should now be visible. Current scrollY: " + window.scrollY);
+            } catch (e) {
+                alert("Error fixing header: " + e.message);
+            }
+            
+            return false;
+        }
+    </script>
     
     <!-- Modern clean background -->
     
     <div id="root"></div>
+    
+    <!-- Extra buttons for redundancy - these will be positioned with JavaScript after load -->
+    <div id="extraButtons" style="display: none;"></div>
+    
+    <script>
+        // Add extra scroll buttons after a slight delay
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                // Create an extra floating button in case the others don't work
+                var floatingButton = document.createElement('button');
+                floatingButton.innerHTML = '⬆';
+                floatingButton.style.cssText = 'position: fixed; bottom: 70px; right: 10px; z-index: 999999; width: 40px; height: 40px; background: blue; color: white; border-radius: 50%; border: none; font-size: 24px; cursor: pointer; display: flex; justify-content: center; align-items: center;';
+                floatingButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    window.scrollTo(0, 0);
+                    var header = document.querySelector('.header-section');
+                    if (header) {
+                        header.style.display = 'block';
+                        header.style.visibility = 'visible';
+                        header.style.opacity = '1';
+                        header.classList.add('sticky-visible');
+                    }
+                    alert('Extra button clicked');
+                    return false;
+                });
+                
+                document.body.appendChild(floatingButton);
+            }, 1000);
+        });
+    </script>
     
     <script>
         // Show/hide mobile indicator based on screen width
@@ -1411,6 +1530,12 @@
             
             // Handle scroll events for smart header
             useEffect(() => {
+                // Expose the setHeaderVisible function to the global window object
+                // This allows the scroll-to-top button to access it outside of React
+                window.updateHeaderState = (state) => {
+                    setHeaderVisible(state);
+                };
+                
                 // Variable to track touch direction for mobile
                 let touchStartY = 0;
                 
