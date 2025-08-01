@@ -2,7 +2,11 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#1e1e1e">
     <title>Kirmes in Kettig - Dienstplan 2025</title>
     
     <!-- Pure HTML fixed bottom navigation that always works -->
@@ -468,6 +472,7 @@
         }
         
         /* Mobile optimizations */
+        /* Mobile-specific styles with finer-grained breakpoints */
         @media (max-width: 768px) {
             /* Additional debug element */
             body:after {
@@ -488,14 +493,27 @@
             /* Force hardware acceleration for smoother animations on mobile */
             * {
                 -webkit-transform: translateZ(0);
-                -moz-transform: translateZ(0);
-                -ms-transform: translateZ(0);
-                -o-transform: translateZ(0);
                 transform: translateZ(0);
                 -webkit-backface-visibility: hidden;
-                -moz-backface-visibility: hidden;
-                -ms-backface-visibility: hidden;
                 backface-visibility: hidden;
+            }
+            
+            /* Ensure touch targets are at least 44x44px for accessibility */
+            button, 
+            select, 
+            .task-dropdown-item,
+            .person-tag {
+                min-height: 44px !important;
+                min-width: 44px !important;
+            }
+            
+            /* Enhanced header handling for mobile */
+            .header-section:not(.sticky-visible) {
+                display: none !important;
+                visibility: hidden !important;
+                opacity: 0 !important;
+                height: 0 !important;
+                transform: translateY(-1000%) !important;
             }
             
             .filter-container {
@@ -1179,63 +1197,199 @@
     
     <!-- Fixed Bottom Navigation - Will always be visible and functional -->
     <div class="fixed-bottom-nav">
-        <!-- Added multiple buttons with different approaches for maximum compatibility -->
+        <!-- Universal main scroll-to-top button -->
         <button 
+            id="mainScrollButton"
             class="bottom-nav-button" 
             onclick="scrollToTopAndFixHeader(); return false;"
-            style="background-color: red; color: white; font-size: 30px; font-weight: bold;"
+            style="background-color: red; color: white; font-size: 30px; font-weight: bold; width: 60px; height: 60px;"
+            aria-label="Nach oben scrollen"
         >↑</button>
         
-        <!-- Fallback button using href with hash for native browser scrolling -->
+        <!-- Secondary button with hash navigation and native scrolling -->
         <a 
             href="#top" 
+            id="secondaryScrollButton"
             onclick="setTimeout(function() { scrollToTopAndFixHeader(); }, 100); return true;" 
             style="position: absolute; right: 20px; width: 50px; height: 50px; background-color: gold; color: black; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 24px; font-weight: bold; text-decoration: none; border: 2px solid black;"
+            aria-label="Alternative Nach-oben-Schaltfläche"
         >#</a>
+        
+        <!-- Additional menu button for showing header -->
+        <button
+            id="showMenuButton"
+            style="position: absolute; left: 20px; width: 50px; height: 50px; background-color: #28a745; color: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 16px; font-weight: bold; border: 2px solid white;"
+            onclick="scrollToTopAndFixHeader(); return false;"
+            aria-label="Menü anzeigen"
+        >MENÜ</button>
     </div>
     
     <!-- Invisible anchor for hash navigation -->
     <a id="top" name="top" style="position: absolute; top: 0;"></a>
     
+    <!-- Invisible but crucial touchable area to help scroll-to-top functionality -->
+    <div id="topTouchArea" style="position: fixed; top: 0; left: 0; right: 0; height: 10px; z-index: -1;"></div>
+    
     <script>
+        // Mobile detection to apply specific behaviors
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+        const isAndroidChrome = /Android.*Chrome/i.test(navigator.userAgent);
+        
+        // Special fixes for Android Chrome
+        if (isAndroidChrome) {
+            // Add specific meta tag for Chrome Mobile
+            const viewportMeta = document.querySelector('meta[name="viewport"]');
+            if (viewportMeta) {
+                viewportMeta.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, minimal-ui');
+            }
+            
+            // Add Android-specific CSS fixes
+            const androidStyle = document.createElement('style');
+            androidStyle.textContent = `
+                body { -webkit-tap-highlight-color: rgba(0,0,0,0); }
+                .fixed-bottom-nav { bottom: 0 !important; height: 70px !important; }
+                .bottom-nav-button { -webkit-transform: translateZ(0); transform: translateZ(0); }
+                input, select, button { -webkit-appearance: none; border-radius: 0; }
+                .header-section { transform: translate3d(0,0,0) !important; -webkit-transform: translate3d(0,0,0) !important; }
+                .header-section.sticky-visible { display: block !important; visibility: visible !important; opacity: 1 !important; }
+            `;
+            document.head.appendChild(androidStyle);
+            
+            // Special scroll handler for Android
+            document.addEventListener('scroll', function() {
+                // Check if we need to force header visibility due to user action
+                if (window.forceHeaderVisible === true && window.scrollY < 10) {
+                    const header = document.querySelector('.header-section');
+                    if (header) {
+                        header.classList.add('sticky-visible');
+                        Object.assign(header.style, {
+                            display: 'block',
+                            visibility: 'visible',
+                            opacity: '1',
+                            transform: 'translateY(0)',
+                            height: 'auto'
+                        });
+                    }
+                }
+            }, { passive: true });
+        }
+        
+        // Update mobile indicator with device information
+        document.addEventListener('DOMContentLoaded', function() {
+            const mobileIndicator = document.getElementById('mobileIndicator');
+            if (mobileIndicator && isMobile) {
+                const deviceInfo = `MOBILE VIEW: ${navigator.userAgent.match(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i) || 'Mobile'}`;
+                mobileIndicator.textContent = deviceInfo;
+                
+                // Add an additional touchable area to help mobile users see the header
+                const touchableArea = document.createElement('div');
+                touchableArea.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 20px;
+                    z-index: 999998;
+                    background-color: rgba(255, 0, 0, 0.5);
+                `;
+                touchableArea.onclick = scrollToTopAndFixHeader;
+                document.body.appendChild(touchableArea);
+                
+                // Make buttons more obvious on mobile
+                document.querySelectorAll('.bottom-nav-button, #showMenuButton, #secondaryScrollButton').forEach(btn => {
+                    btn.style.boxShadow = '0 0 15px rgba(255,255,255,0.5)';
+                    btn.style.animation = 'pulse 2s infinite';
+                });
+                
+                // Add a pulsing animation
+                const style = document.createElement('style');
+                style.textContent = `
+                    @keyframes pulse {
+                        0% { transform: scale(1); }
+                        50% { transform: scale(1.05); }
+                        100% { transform: scale(1); }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+        });
+        
         // Global function to scroll to top and force header to show
         function scrollToTopAndFixHeader() {
-            // First scroll to top
-            window.scrollTo({top: 0, behavior: 'smooth'});
+            console.log("scrollToTopAndFixHeader called");
             
-            // Then explicitly show the header with multiple approaches to ensure it works
+            // Set a flag to force header visibility that persists
+            window.forceHeaderVisible = true;
+            
+            // First do an instant scroll to ensure mobile browsers recognize the position change
+            window.scrollTo(0, 0);
+            
+            // Then do a smooth scroll for better UX
+            setTimeout(function() {
+                window.scrollTo({top: 0, behavior: 'smooth'});
+            }, 10);
+            
+            // Then explicitly show the header with multiple approaches to ensure cross-browser compatibility
             try {
-                // 1. Direct DOM manipulation
+                // For debugging
+                console.log("Before header fix: scrollY=" + window.scrollY);
+                
+                // 1. Direct DOM manipulation with the most aggressive approach possible
                 var header = document.querySelector('.header-section');
                 if (header) {
-                    // Force override all CSS that might be hiding it
-                    header.style.cssText = 'display: block !important; visibility: visible !important; opacity: 1 !important; transform: translateY(0) !important; position: fixed !important; top: 0 !important; height: auto !important; width: 100% !important; overflow: visible !important; z-index: 999999 !important;';
+                    // Remove any existing styles and classes first
+                    header.removeAttribute('style');
+                    header.removeAttribute('data-mobile-hidden');
+                    
+                    // Add the sticky-visible class
                     header.classList.add('sticky-visible');
                     
-                    // Also set inline styles individually as a fallback
-                    header.style.display = 'block';
-                    header.style.visibility = 'visible';
-                    header.style.opacity = '1';
-                    header.style.transform = 'translateY(0)';
-                    header.style.position = 'fixed';
-                    header.style.top = '0';
+                    // Force override all CSS that might be hiding it
+                    header.setAttribute('style', 
+                        'display: block !important; ' +
+                        'visibility: visible !important; ' + 
+                        'opacity: 1 !important; ' + 
+                        'transform: translateY(0) !important; ' + 
+                        'position: fixed !important; ' + 
+                        'top: 0 !important; ' + 
+                        'height: auto !important; ' + 
+                        'width: 100% !important; ' + 
+                        'overflow: visible !important; ' + 
+                        'z-index: 999999 !important;'
+                    );
+                    
+                    console.log("Header styles applied");
                 }
                 
                 // 2. Use React state update through the exposed global function
                 if (window.updateHeaderState) {
                     window.updateHeaderState(true);
                     console.log("React state updated via global function");
-                } else {
-                    console.log("Warning: window.updateHeaderState is not available");
                 }
                 
-                // 3. Dispatch a custom event for additional listeners
-                document.dispatchEvent(new CustomEvent('showHeader'));
+                // 3. Create a new temporary button that triggers header visibility
+                var tempButton = document.createElement('button');
+                tempButton.innerHTML = "↑";
+                tempButton.style.position = 'fixed';
+                tempButton.style.top = '-100px'; // Hidden but still in the DOM
+                tempButton.onclick = function() {
+                    if (header) header.classList.add('sticky-visible');
+                };
+                document.body.appendChild(tempButton);
+                tempButton.click();
+                setTimeout(function() {
+                    document.body.removeChild(tempButton);
+                }, 1000);
                 
-                // Show debug alert with scrollY position
-                alert("Scroll button clicked! Header should now be visible. Current scrollY: " + window.scrollY);
+                // Add debug confirmation
+                if (window.innerWidth <= 768) {
+                    // Show debug alert with scrollY position only on mobile
+                    console.log("Scroll button clicked - header should be visible");
+                    alert("Scroll button clicked!\nHeader should now be visible.\nCurrent scroll position: " + window.scrollY);
+                }
             } catch (e) {
                 alert("Error fixing header: " + e.message);
+                console.error("Header fix error:", e);
             }
             
             return false;
@@ -1572,32 +1726,61 @@
                         if (currentScrollY <= 5) {
                             setHeaderVisible(true);
                             setIsExpanded(false); // Keep instructions collapsed on mobile
+                            
+                            // Explicitly force show with direct DOM manipulation
+                            const header = document.querySelector('.header-section');
+                            if (header) {
+                                // Clear any inline styles that might interfere
+                                header.removeAttribute('style');
+                                // Add the sticky-visible class
+                                header.classList.add('sticky-visible');
+                                // Add some inline styles to force visibility
+                                Object.assign(header.style, {
+                                    display: 'block',
+                                    visibility: 'visible',
+                                    opacity: '1',
+                                    height: 'auto',
+                                    overflow: 'visible',
+                                    transform: 'translateY(0)',
+                                    position: 'fixed',
+                                    top: '0',
+                                    zIndex: '1000',
+                                    width: '100%'
+                                });
+                            }
                         } else {
                             // ULTRA AGGRESSIVE HIDING: Use both React state and direct DOM manipulation
                             setHeaderVisible(false);
                             setIsExpanded(false);
                             
-                            // Force hide with direct DOM manipulation for maximum compatibility
+                            // Force hide with direct DOM manipulation - guaranteed approach for all browsers
                             const header = document.querySelector('.header-section');
                             if (header) {
-                                header.style.cssText = `
-                                    display: none !important;
-                                    visibility: hidden !important;
-                                    opacity: 0 !important;
-                                    height: 0 !important;
-                                    overflow: hidden !important;
-                                    transform: translateY(-1000%) !important;
-                                    position: absolute !important;
-                                    pointer-events: none !important;
-                                    clip-path: polygon(0 0, 0 0, 0 0, 0 0) !important;
-                                    width: 0 !important;
-                                    margin: 0 !important;
-                                    padding: 0 !important;
-                                    border: 0 !important;
-                                    min-height: 0 !important;
-                                    max-height: 0 !important;
-                                `;
+                                // Remove the sticky-visible class first
                                 header.classList.remove('sticky-visible');
+                                
+                                // Apply individual style properties instead of cssText for better cross-browser support
+                                Object.assign(header.style, {
+                                    display: 'none',
+                                    visibility: 'hidden',
+                                    opacity: '0',
+                                    height: '0',
+                                    overflow: 'hidden',
+                                    transform: 'translateY(-1000%)',
+                                    position: 'absolute',
+                                    pointerEvents: 'none',
+                                    clipPath: 'polygon(0 0, 0 0, 0 0, 0 0)',
+                                    width: '0',
+                                    margin: '0',
+                                    padding: '0',
+                                    border: '0',
+                                    minHeight: '0',
+                                    maxHeight: '0',
+                                    top: '-1000px'
+                                });
+                                
+                                // Add an HTML attribute to make debugging easier
+                                header.setAttribute('data-mobile-hidden', 'true');
                             }
                         }
                     } else {
@@ -1683,14 +1866,20 @@
             return (
                 <div className="main-layout">
                     {/* Smart Header with Filters - Hides on scroll down, Shows on scroll up */}
-                    <div className={`header-section ${headerVisible ? 'sticky-visible' : ''}`} style={{
-                        opacity: headerVisible ? 1 : 0,
-                        visibility: headerVisible ? 'visible' : 'hidden',
-                        display: headerVisible ? 'block' : 'none',
-                        transform: headerVisible ? 'translateY(0)' : 'translateY(-200%)',
-                        height: headerVisible ? 'auto' : 0,
-                        overflow: headerVisible ? 'visible' : 'hidden'
-                    }}>
+                    <div 
+                        id="mainHeaderSection"
+                        className={`header-section ${headerVisible ? 'sticky-visible' : ''}`} 
+                        style={{
+                            opacity: headerVisible ? 1 : 0,
+                            visibility: headerVisible ? 'visible' : 'hidden',
+                            display: headerVisible ? 'block' : 'none',
+                            transform: headerVisible ? 'translateY(0)' : 'translateY(-200%)',
+                            height: headerVisible ? 'auto' : 0,
+                            overflow: headerVisible ? 'visible' : 'hidden',
+                            zIndex: headerVisible ? 1000 : -1
+                        }}
+                        data-header-visible={headerVisible ? 'true' : 'false'}
+                    >
                         <div className="filter-container">
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                                 <h1 style={{ color: '#FFD700', margin: 0, fontSize: '2rem' }}>
