@@ -318,8 +318,9 @@
             width: 100%;
             z-index: 1000; /* Increased z-index */
             padding: 20px;
-            transition: transform 0.3s ease, box-shadow 0.3s ease, opacity 0.3s ease, visibility 0.3s ease;
-            will-change: transform, opacity, visibility;
+            transition: all 0.3s ease;
+            will-change: transform, opacity, visibility, height;
+            overflow: hidden;
         }
         
         /* Special styling for header when sticked to top and visible */
@@ -327,6 +328,8 @@
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
             opacity: 1;
             transform: translateY(0);
+            height: auto;
+            overflow: visible;
         }
         
         /* Scrollable content area */
@@ -359,15 +362,15 @@
             100% { transform: scale(1); }
         }
         
-        /* Always visible scroll-to-top button */
-        #scrollTopButton {
+        /* Scroll-to-top buttons - multiple options for maximum compatibility */
+        #scrollTopButton, #fixed-scroll-button, #backup-scroll-button {
             position: fixed;
             bottom: 20px;
             right: 20px;
             width: 48px;
             height: 48px;
             border-radius: 50%;
-            background-color: rgba(255, 215, 0, 0.9);
+            background-color: rgba(255, 215, 0, 0.95);
             color: #000;
             border: none;
             display: flex;
@@ -379,14 +382,21 @@
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
             font-weight: bold;
             transition: transform 0.3s ease;
+            text-align: center;
         }
         
-        #scrollTopButton:hover {
+        #backup-scroll-button {
+            bottom: 80px; /* Position differently for second button */
+        }
+        
+        #scrollTopButton:hover, #fixed-scroll-button:hover, #backup-scroll-button:hover {
             transform: scale(1.05);
+            background-color: rgba(255, 215, 0, 1);
         }
         
-        #scrollTopButton:active {
+        #scrollTopButton:active, #fixed-scroll-button:active, #backup-scroll-button:active {
             transform: scale(0.95);
+            background-color: rgba(255, 205, 0, 1);
         }
         
         /* Mobile optimizations */
@@ -495,7 +505,7 @@
             
             /* Add extra padding to content to offset fixed header */
             .main-layout {
-                padding-top: 180px !important; /* Adjust based on your header height */
+                padding-top: 250px !important; /* Increased padding to ensure content is below the header */
             }
             
             /* Instructions on mobile */
@@ -504,17 +514,19 @@
                 min-height: 36px !important;
             }
             
-            /* Ensure smoother hiding and showing */
+            /* Force complete hiding for Firefox and all browsers */
             .header-section:not(.sticky-visible) {
-                transform: translateY(-200%) !important; /* Move further off-screen */
+                transform: translateY(-500%) !important; /* Move much further off-screen */
                 opacity: 0 !important;
                 pointer-events: none !important;
-                visibility: hidden !important; /* Added for Firefox compatibility */
+                visibility: hidden !important; /* Firefox compatibility */
                 display: none !important; /* Force full hiding on mobile devices */
                 position: absolute !important; /* Remove from flow when hidden */
                 height: 0 !important; /* Force height to 0 when hidden */
                 overflow: hidden !important; /* Hide any overflow */
                 margin: 0 !important;
+                max-height: 0 !important; /* Additional height restriction */
+                clip-path: polygon(0 0, 0 0, 0 0, 0 0) !important; /* Hide using clip-path */
                 padding: 0 !important;
             }
             
@@ -1428,12 +1440,15 @@
                     <div className={`header-section ${headerVisible ? 'sticky-visible' : ''}`} style={{
                         opacity: headerVisible ? 1 : 0,
                         visibility: headerVisible ? 'visible' : 'hidden',
-                        display: headerVisible ? 'block' : 'none'
+                        display: headerVisible ? 'block' : 'none',
+                        transform: headerVisible ? 'translateY(0)' : 'translateY(-200%)',
+                        height: headerVisible ? 'auto' : 0,
+                        overflow: headerVisible ? 'visible' : 'hidden'
                     }}>
                         <div className="filter-container">
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                                 <h1 style={{ color: '#FFD700', margin: 0, fontSize: '2rem' }}>
-                                    Dienstplan 2025 te
+                                    Dienstplan 2025 test
                                 </h1>
                                 
                                 {/* Toggle Button for Instructions */}
@@ -2048,7 +2063,7 @@
                         </div>
                     </div>
                     
-                    {/* Hard-coded scroll-to-top button that will always work */}
+                    {/* Hard-coded scroll-to-top button - React implementation */}
                     <div 
                         id="scrollTopButton"
                         onClick={() => {
@@ -2056,6 +2071,18 @@
                             // Also explicitly set state variables to ensure proper UI update
                             setHeaderVisible(true);
                             setIsExpanded(true);
+                            
+                            // Force header to show
+                            const headerElement = document.querySelector('.header-section');
+                            if (headerElement) {
+                                headerElement.classList.add('sticky-visible');
+                                headerElement.style.display = 'block';
+                                headerElement.style.visibility = 'visible';
+                                headerElement.style.opacity = '1';
+                                headerElement.style.transform = 'translateY(0)';
+                                headerElement.style.height = 'auto';
+                                headerElement.style.overflow = 'visible';
+                            }
                         }}
                         style={{
                             position: 'fixed',
@@ -2075,6 +2102,7 @@
                             zIndex: 9999, /* Increased z-index to ensure visibility */
                             boxShadow: '0 4px 15px rgba(0, 0, 0, 0.5)',
                             fontWeight: 'bold',
+                            opacity: 0.9,
                         }}
                         title="Nach oben"
                     >
@@ -2170,7 +2198,8 @@
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
         
-        // Add a direct script for scroll button that will always work
+        // Add MULTIPLE scroll-to-top buttons for maximum compatibility and reliability
+        // First implementation - runs sooner
         setTimeout(() => {
             // Create a scroll-to-top button if it doesn't exist
             if (!document.getElementById('fixed-scroll-button')) {
@@ -2184,40 +2213,111 @@
                     width: 48px;
                     height: 48px;
                     border-radius: 50%;
-                    background-color: rgba(255, 215, 0, 0.9);
+                    background-color: rgba(255, 215, 0, 1); /* More visible */
                     color: #000;
-                    display: none;
+                    display: flex; /* Start with flex to make it visible */
                     align-items: center;
                     justify-content: center;
                     font-size: 24px;
                     cursor: pointer;
-                    z-index: 9999;
+                    z-index: 10000; /* Maximum z-index */
                     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
                     font-weight: bold;
                     transition: all 0.3s ease;
-                    text-align: center;
-                    line-height: 48px;
                 `;
                 document.body.appendChild(scrollButton);
                 
-                // Add click event
+                // Add click event that also shows header
                 scrollButton.addEventListener('click', () => {
                     window.scrollTo({ top: 0, behavior: 'smooth' });
-                });
-                
-                // Show/hide based on scroll position
-                window.addEventListener('scroll', () => {
-                    if (window.pageYOffset > 200) {
-                        scrollButton.style.display = 'block';
-                    } else {
-                        scrollButton.style.display = 'none';
+                    
+                    // Force header to show
+                    const headerElement = document.querySelector('.header-section');
+                    if (headerElement) {
+                        headerElement.classList.add('sticky-visible');
+                        headerElement.style.display = 'block';
+                        headerElement.style.visibility = 'visible';
+                        headerElement.style.opacity = '1';
+                        headerElement.style.transform = 'translateY(0)';
+                        headerElement.style.height = 'auto';
+                        headerElement.style.overflow = 'visible';
                     }
                 });
                 
+                // Show/hide based on scroll position with lower threshold
+                const checkScroll = () => {
+                    if (window.pageYOffset > 100) { // Lower threshold to show earlier
+                        scrollButton.style.display = 'flex';
+                    } else {
+                        scrollButton.style.display = 'none';
+                    }
+                };
+                
+                // Multiple event listeners for better detection
+                ['scroll', 'touchmove', 'wheel', 'resize'].forEach(eventType => {
+                    window.addEventListener(eventType, checkScroll, { passive: true });
+                });
+                
                 // Initial check
-                if (window.pageYOffset > 200) {
-                    scrollButton.style.display = 'block';
+                checkScroll();
+            }
+        }, 500); // Reduced timeout for faster appearance
+        
+        // Second implementation with a different approach - runs slightly later
+        setTimeout(() => {
+            if (!document.querySelector('#backup-scroll-button')) {
+                const backupButton = document.createElement('button');
+                backupButton.id = 'backup-scroll-button';
+                backupButton.textContent = '▲';
+                backupButton.setAttribute('title', 'Nach oben');
+                backupButton.style.cssText = `
+                    position: fixed;
+                    bottom: 80px;
+                    right: 20px;
+                    width: 48px;
+                    height: 48px;
+                    border-radius: 50%;
+                    background-color: rgba(255, 215, 0, 0.9);
+                    color: #000;
+                    border: none;
+                    cursor: pointer;
+                    z-index: 10001;
+                    font-weight: bold;
+                    font-size: 20px;
+                    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+                    display: none;
+                `;
+                document.body.appendChild(backupButton);
+                
+                backupButton.addEventListener('click', function() {
+                    window.scrollTo(0, 0);
+                    
+                    // Also manually show header
+                    const header = document.querySelector('.header-section');
+                    if (header) {
+                        header.classList.add('sticky-visible');
+                        header.style.opacity = '1';
+                        header.style.visibility = 'visible';
+                        header.style.display = 'block';
+                    }
+                });
+                
+                // Different scroll event for redundancy
+                function checkScrollPosition() {
+                    if (window.scrollY > 150) {
+                        backupButton.style.display = 'block';
+                    } else {
+                        backupButton.style.display = 'none';
+                    }
                 }
+                
+                // Add multiple event listeners for better detection
+                ['scroll', 'touchmove', 'wheel', 'resize'].forEach(event => {
+                    window.addEventListener(event, checkScrollPosition, { passive: true });
+                });
+                
+                // Initialize visibility
+                checkScrollPosition();
             }
         }, 1000);
     </script>
