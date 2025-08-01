@@ -287,6 +287,18 @@
             overflow-x: hidden;
         }
         
+        /* Animation keyframes */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
         /* Main layout for task viewer */
         .main-layout {
             display: flex;
@@ -303,12 +315,15 @@
             top: 0;
             z-index: 100;
             padding: 20px;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, opacity 0.3s ease;
+            will-change: transform, opacity;
         }
         
         /* Special styling for header when sticked to top and visible */
         .header-section.sticky-visible {
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            opacity: 1;
+            transform: translateY(0);
         }
         
         /* Scrollable content area */
@@ -433,12 +448,20 @@
             /* Improved mobile header appearance */
             .header-section {
                 padding: 10px 5px !important;
+                transition: transform 0.3s ease, opacity 0.3s ease;
+                will-change: transform, opacity;
             }
             
             /* Instructions on mobile */
             .header-section button {
                 min-width: 36px !important;
                 min-height: 36px !important;
+            }
+            
+            /* Ensure smoother hiding and showing */
+            .header-section:not(.sticky-visible) {
+                transform: translateY(-100%);
+                opacity: 0;
             }
             
             /* Mobile search bar improvements */
@@ -1231,14 +1254,17 @@
                             setIsExpanded(true);
                         }
                     } else if (currentScrollY < lastScrollY) {
-                        // Scrolling up
-                        setHeaderVisible(true);
+                        // Scrolling up - only show header if we've scrolled up enough
+                        // This prevents the header from reappearing with tiny scroll movements
+                        if (lastScrollY - currentScrollY > 20) {
+                            setHeaderVisible(true);
+                        }
                     } else {
-                        // Scrolling down
+                        // Scrolling down - hide header
                         setHeaderVisible(false);
                         
-                        // If we're scrolling down and instructions are visible, collapse them
-                        if (currentScrollY > 50 && isExpanded) {
+                        // When scrolling down, always collapse instructions
+                        if (isExpanded && currentScrollY > 30) {
                             setIsExpanded(false);
                         }
                     }
@@ -1273,8 +1299,8 @@
             return (
                 <div className="main-layout">
                     {/* Smart Header with Filters - Hides on scroll down, Shows on scroll up */}
-                    <div className={`header-section ${lastScrollY > 10 && headerVisible ? 'sticky-visible' : ''}`} style={{ 
-                        transform: headerVisible ? 'translateY(0)' : 'translateY(-100%)',
+                    <div className={`header-section ${headerVisible ? 'sticky-visible' : ''}`} style={{
+                        opacity: headerVisible ? 1 : 0
                     }}>
                         <div className="filter-container">
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
@@ -1321,13 +1347,13 @@
                                     <p style={{ margin: '0 0 5px 0', textAlign: 'center', fontWeight: 'bold' }}>
                                         🔍 So funktioniert die Suche:
                                     </p>
-                                    <ul style={{ margin: '0', paddingLeft: '20px', listStyleType: 'disc' }}>
-                                        <li>Namen eingeben, um persönliche Aufgaben zu finden</li>
-                                        <li>Tag oder Aufgabe filtern über die Dropdown-Menüs</li>
-                                        <li>Auf einen Namen klicken, um zu filtern (nochmal klicken zum Aufheben)</li>
-                                        <li>Ergebnisse per WhatsApp an dich selbst oder andere senden</li>
-                                        <li>PDF erstellen oder Aufgaben ausdrucken</li>
-                                    </ul>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                                        <p style={{ margin: '0' }}>Gib deinen Namen ein ODER klicke auf deinen Namen in einer Aufgabe, um alle deine Aufgaben zu sehen</p>
+                                        <p style={{ margin: '0' }}>Tag oder Aufgabe filtern über die Dropdown-Menüs</p>
+                                        <p style={{ margin: '0' }}>Klicke erneut auf deinen Namen, um den Filter aufzuheben</p>
+                                        <p style={{ margin: '0' }}>Ergebnisse per WhatsApp an dich selbst oder andere senden</p>
+                                        <p style={{ margin: '0' }}>PDF erstellen oder Aufgaben ausdrucken</p>
+                                    </div>
                                 </div>
                             )}
                             
@@ -1561,8 +1587,8 @@
                                             
                                             // Set the subtitle with search term
                                             const subtitle = searchTerm 
-                                                ? `"Aufgaben für: ${searchTerm}"` 
-                                                : `"Alle Aufgaben"`;
+                                                ? `Aufgaben für: ${searchTerm}` 
+                                                : `Alle Aufgaben`;
                                             
                                             // Create a more detailed subtitle when printing for a specific person
                                             if (searchTerm) {
@@ -1570,14 +1596,16 @@
                                                 const taskText = taskCount === 1 ? "Aufgabe" : "Aufgaben";
                                                 // Create subtitle showing "Aufgaben für [Person Name]" as in the PDF screenshot
                                                 const subtitle = `Aufgaben für ${searchTerm}`;
-                                                document.documentElement.style.setProperty('--print-subtitle', subtitle);
+                                                document.documentElement.style.setProperty('--print-subtitle', `"${subtitle}"`);
                                                 
                                                 // Set personalized footer
-                                                let personalizedFooter = `"Vielen Dank für deine Unterstützung bei der Kirmes in Kettig 2025, ${searchTerm}!"`;
-                                                document.documentElement.style.setProperty('--print-footer', personalizedFooter);
+                                                let personalizedFooter = `Vielen Dank für deine Unterstützung bei der Kirmes in Kettig 2025, ${searchTerm}!`;
+                                                document.documentElement.style.setProperty('--print-footer', `"${personalizedFooter}"`);
                                             } else {
-                                                document.documentElement.style.setProperty('--print-subtitle', `"Alle Aufgaben (${filteredTasks.length})"`);
-                                                document.documentElement.style.setProperty('--print-footer', `"Ausgedruckt am ${currentDate}"`);
+                                                const allTasksSubtitle = `Alle Aufgaben (${filteredTasks.length})`;
+                                                document.documentElement.style.setProperty('--print-subtitle', `"${allTasksSubtitle}"`);
+                                                const footerText = `Ausgedruckt am ${currentDate}`;
+                                                document.documentElement.style.setProperty('--print-footer', `"${footerText}"`);
                                             }
                                             
                                             // Add date below the footer for all prints
@@ -1822,28 +1850,34 @@
                     </div>
                     
                     {/* Scroll to top button - visible when scrolled down */}
-                    {lastScrollY > 300 && (
+                    {lastScrollY > 200 && (
                         <button 
-                            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                            onClick={() => {
+                                window.scrollTo({ top: 0, behavior: 'smooth' });
+                                // Also explicitly set state variables to ensure proper UI update
+                                setHeaderVisible(true);
+                                setIsExpanded(true);
+                            }}
                             style={{
                                 position: 'fixed',
                                 bottom: '20px',
                                 right: '20px',
-                                width: '44px',
-                                height: '44px',
+                                width: '48px',
+                                height: '48px',
                                 borderRadius: '50%',
-                                backgroundColor: 'rgba(255, 215, 0, 0.8)',
+                                backgroundColor: 'rgba(255, 215, 0, 0.9)',
                                 color: '#000',
                                 border: 'none',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                fontSize: '22px',
+                                fontSize: '24px',
                                 cursor: 'pointer',
-                                zIndex: 99,
-                                boxShadow: '0 2px 10px rgba(0, 0, 0, 0.4)',
+                                zIndex: 999,
+                                boxShadow: '0 4px 15px rgba(0, 0, 0, 0.5)',
                                 transition: 'all 0.3s ease',
-                                fontWeight: 'bold'
+                                fontWeight: 'bold',
+                                animation: 'fadeIn 0.3s ease'
                             }}
                             title="Nach oben"
                         >
