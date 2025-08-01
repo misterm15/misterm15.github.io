@@ -29,6 +29,8 @@
             body, html {
                 height: auto !important;
                 overflow: visible !important;
+                font-family: Arial, sans-serif !important;
+                background: white !important;
             }
             
             body * { 
@@ -50,38 +52,82 @@
                 background-color: white !important;
                 height: auto !important;
                 overflow: visible !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                font-family: Arial, sans-serif !important;
+            }
+            
+            /* Compact PDF-like layout for print */
+            .content-section > div {
+                max-width: 100% !important;
+                padding: 0 !important;
+                margin: 0 !important;
             }
             
             .task-card {
                 break-inside: avoid !important;
                 page-break-inside: avoid !important;
                 border: 1px solid #ccc !important;
-                margin-bottom: 20px !important;
+                margin-bottom: 10px !important;
+                margin-top: 0 !important;
                 background-color: white !important;
                 box-shadow: none !important;
+                padding: 10px !important;
+                font-size: 11pt !important;
             }
             
-            .person-tag {
-                background-color: #f5f5f5 !important;
-                color: #333 !important;
-                border: 1px solid #ddd !important;
+            /* Optimize spacing */
+            .task-header {
+                margin-bottom: 5px !important;
             }
             
             .task-title {
                 color: #333 !important;
                 font-weight: bold !important;
                 border-bottom: 1px solid #ddd !important;
+                font-size: 12pt !important;
+                margin: 0 0 5px 0 !important;
             }
             
-            .person-highlight {
-                font-weight: bold !important;
+            .task-date-time {
+                font-size: 10pt !important;
+            }
+            
+            .task-date-time span {
+                margin: 0 !important;
+                padding: 0 !important;
+                line-height: 1.2 !important;
+            }
+            
+            /* Person tags */
+            .person-tag {
+                display: inline !important;
                 background: none !important;
-                color: black !important;
+                border: none !important;
+                padding: 0 !important;
+                margin-right: 10px !important;
+                font-size: 10pt !important;
             }
             
+            /* All task persons in a single line to save space */
+            div > div:last-child > div {
+                display: block !important;
+            }
+            
+            h4 {
+                font-size: 10pt !important;
+                margin: 5px 0 !important;
+            }
+            
+            /* Highlighted person */
+            .person-tag[style*="searchTerm"] {
+                font-weight: bold !important;
+            }
+            
+            /* Page settings */
             @page { 
                 size: portrait; 
-                margin: 2cm; 
+                margin: 1.5cm !important; 
             }
             
             .header-section,
@@ -93,36 +139,100 @@
                 display: none !important;
             }
             
-            /* Add a header to the printout with search term */
+            /* PDF-style header for print */
             .content-section::before {
                 content: "Kirmes in Kettig - Dienstplan 2025";
-                font-size: 24px;
-                font-weight: bold;
-                display: block;
-                text-align: center;
-                margin-bottom: 5px;
+                font-size: 16pt !important;
+                font-weight: bold !important;
+                display: block !important;
+                text-align: center !important;
+                margin-bottom: 5px !important;
                 color: black !important;
             }
             
             /* Add subtitle with search term */
             .content-section::after {
                 content: var(--print-subtitle);
-                font-size: 18px;
-                display: block;
-                text-align: center;
-                margin-bottom: 20px;
+                font-size: 14pt !important;
+                display: block !important;
+                text-align: center !important;
+                margin-bottom: 15px !important;
                 color: #333 !important;
-                margin-top: 5px;
+                margin-top: 5px !important;
+            }
+            
+            /* Compact person listing */
+            .content-section .task-card h4 + div {
+                display: block !important;
+                margin-bottom: 5px !important;
+                font-size: 10pt !important;
+            }
+            
+            /* Style for arrow */
+            .content-section .task-card .person-tag[style*="searchTerm"]::after {
+                content: " ←";
+                font-weight: bold !important;
             }
             
             /* Add print footer with date */
-            .content-section .task-card:last-child::after {
+            .content-section::before {
+                content: "Kirmes in Kettig - Dienstplan 2025";
+                display: block !important;
+                position: fixed !important;
+                top: 0 !important;
+                left: 0 !important;
+                width: 100% !important;
+                text-align: center !important;
+                font-size: 16pt !important;
+                font-weight: bold !important;
+                margin-bottom: 5px !important;
+                padding-top: 5mm !important;
+                background: white !important;
+            }
+            
+            /* Add subtitle with search term below header */
+            .content-section > div::before {
+                content: var(--print-subtitle);
+                display: block !important;
+                text-align: center !important;
+                font-size: 14pt !important;
+                font-weight: normal !important;
+                margin-bottom: 15px !important;
+                color: #333 !important;
+            }
+            
+            /* Footer with date */
+            .content-section > div::after {
                 content: "Ausgedruckt am " var(--print-date);
-                display: block;
-                text-align: center;
-                font-size: 12px;
-                margin-top: 30px;
+                display: block !important;
+                text-align: center !important;
+                font-size: 8pt !important;
+                margin-top: 10px !important;
                 color: #666 !important;
+                border-top: 1px solid #ddd !important;
+                padding-top: 5px !important;
+            }
+            
+            /* Make the task cards more compact */
+            .task-card {
+                margin-bottom: 5mm !important;
+                border-radius: 5px !important;
+            }
+            
+            /* Make the task title more compact */
+            .task-card div:first-child {
+                padding-bottom: 5px !important;
+                margin-bottom: 5px !important;
+            }
+            
+            /* Position elements better */
+            .task-header {
+                align-items: center !important;
+            }
+            
+            /* More compact spacing on persons list */
+            .task-card h4 {
+                margin-top: 0 !important;
             }
             
             /* Add print footer with date using JavaScript date function directly */
@@ -677,6 +787,23 @@
             border: 1px solid rgba(23, 162, 184, 0.4);
             color: #17a2b8;
         }
+        
+        /* Clickable person tags styling */
+        .person-tag {
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .person-tag:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            background: rgba(255, 215, 0, 0.25) !important;
+            border-color: rgba(255, 215, 0, 0.5) !important;
+        }
+        
+        .person-tag:active {
+            transform: translateY(0);
+        }
     </style>
 </head>
 <body>
@@ -924,12 +1051,30 @@
                     <div className="header-section">
                         <div className="filter-container">
                             <div>
-                                <h1 style={{ color: '#FFD700', margin: 0, fontSize: '2rem' }}>
+                                <h1 style={{ color: '#FFD700', margin: 0, fontSize: '2rem', marginBottom: '15px' }}>
                                     Dienstplan 2025
                                 </h1>
-                                <p style={{ color: 'rgba(255, 215, 0, 0.8)', margin: '5px 0 0 0' }}>
-                                    Kirmes in Kettig
+                            </div>
+                            
+                            {/* Filter Instructions Box */}
+                            <div style={{ 
+                                background: 'rgba(255, 255, 255, 0.1)',
+                                border: '1px solid rgba(255, 215, 0, 0.2)',
+                                borderRadius: '8px',
+                                padding: '10px 15px',
+                                marginBottom: '15px',
+                                fontSize: '14px',
+                                color: '#fff'
+                            }}>
+                                <p style={{ margin: '0 0 5px 0', textAlign: 'center', fontWeight: 'bold' }}>
+                                    🔍 So funktioniert die Suche:
                                 </p>
+                                <ul style={{ margin: '0', paddingLeft: '20px', listStyleType: 'disc' }}>
+                                    <li>Namen eingeben, um persönliche Aufgaben zu finden</li>
+                                    <li>Tag oder Aufgabe filtern über die Dropdown-Menüs</li>
+                                    <li>Ergebnisse per WhatsApp an dich selbst oder andere senden</li>
+                                    <li>PDF erstellen oder Aufgaben ausdrucken</li>
+                                </ul>
                             </div>
                             
                             {/* Primary Name Search */}
@@ -1073,6 +1218,10 @@
                                                 .map(t => `📍 ${t.task}:\n${t.date}, ${t.time}`)
                                                 .join('\n\n');
                                             const whatsappText = `Kirmes Aufgaben für ${searchTerm}:\n\n${tasksText}`;
+                                            
+                                            // Show an info message before opening WhatsApp
+                                            alert("Tipp: Du kannst die Nachricht an dich selbst oder an andere Personen senden.\n\nWähle einfach einen Kontakt aus oder nutze die 'An mich selbst senden' Funktion in WhatsApp.");
+                                            
                                             // Open WhatsApp with pre-filled message
                                             window.open(`https://wa.me/?text=${encodeURIComponent(whatsappText)}`);
                                         }}
@@ -1083,7 +1232,7 @@
                                             alignItems: 'center',
                                             gap: '5px'
                                         }}
-                                        title="An WhatsApp senden"
+                                        title="An WhatsApp senden - Du kannst die Nachricht auch an dich selbst senden"
                                     >
                                         <span style={{fontSize: '16px'}}>📱</span> Per WhatsApp teilen
                                     </button>
@@ -1114,7 +1263,7 @@
                                                             <p><strong>👥 Zugewiesene Personen:</strong></p>
                                                             <ul style="padding-left: 20px;">
                                                                 ${task.persons.map(person => `
-                                                                    <li style="${person.toLowerCase().includes(searchTerm.toLowerCase()) ? 'font-weight: bold;' : ''}">${person}</li>
+                                                                    <li style="${person.toLowerCase().includes(searchTerm.toLowerCase()) ? 'font-weight: bold;' : ''}">${person} ${person.toLowerCase().includes(searchTerm.toLowerCase()) ? '←' : ''}</li>
                                                                 `).join('')}
                                                             </ul>
                                                         </div>
@@ -1162,7 +1311,7 @@
                                                 : `"Alle Aufgaben"`;
                                             document.documentElement.style.setProperty('--print-subtitle', subtitle);
                                             
-                                            // Trigger print dialog
+                                            // Trigger print dialog immediately
                                             window.print();
                                         }}
                                         style={{ 
@@ -1262,21 +1411,37 @@
                                         }}>
                                             {task.persons.length > 0 ? (
                                                 task.persons.map((person, personIndex) => (
-                                                    <span key={personIndex} className="person-tag" style={{
-                                                        background: searchTerm && person.toLowerCase().includes(searchTerm.toLowerCase())
-                                                            ? 'rgba(255, 215, 0, 0.3)' // Highlight searched person
-                                                            : 'rgba(255, 255, 255, 0.15)',
-                                                        color: searchTerm && person.toLowerCase().includes(searchTerm.toLowerCase())
-                                                            ? '#000'
-                                                            : '#fff',
-                                                        padding: '6px 12px',
-                                                        borderRadius: '20px',
-                                                        fontSize: '14px',
-                                                        fontWeight: '500',
-                                                        border: searchTerm && person.toLowerCase().includes(searchTerm.toLowerCase())
-                                                            ? '1px solid rgba(255, 215, 0, 0.6)'
-                                                            : '1px solid rgba(255, 255, 255, 0.2)'
-                                                    }}>
+                                                    <span 
+                                                        key={personIndex} 
+                                                        className="person-tag" 
+                                                        onClick={() => setSearchTerm(person)}
+                                                        style={{
+                                                            background: searchTerm && person.toLowerCase().includes(searchTerm.toLowerCase())
+                                                                ? 'rgba(255, 215, 0, 0.3)' // Highlight searched person
+                                                                : 'rgba(255, 255, 255, 0.15)',
+                                                            color: searchTerm && person.toLowerCase().includes(searchTerm.toLowerCase())
+                                                                ? '#000'
+                                                                : '#fff',
+                                                            padding: '6px 12px',
+                                                            borderRadius: '20px',
+                                                            fontSize: '14px',
+                                                            fontWeight: '500',
+                                                            border: searchTerm && person.toLowerCase().includes(searchTerm.toLowerCase())
+                                                                ? '1px solid rgba(255, 215, 0, 0.6)'
+                                                                : '1px solid rgba(255, 255, 255, 0.2)',
+                                                            cursor: 'pointer',
+                                                            transition: 'transform 0.2s ease, box-shadow 0.2s ease'
+                                                        }}
+                                                        onMouseOver={(e) => {
+                                                            e.currentTarget.style.transform = 'translateY(-2px)';
+                                                            e.currentTarget.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)';
+                                                        }}
+                                                        onMouseOut={(e) => {
+                                                            e.currentTarget.style.transform = 'translateY(0)';
+                                                            e.currentTarget.style.boxShadow = 'none';
+                                                        }}
+                                                        title={`Nach "${person}" filtern`}
+                                                    >
                                                         {person}
                                                     </span>
                                                 ))
