@@ -448,8 +448,18 @@
             /* Improved mobile header appearance */
             .header-section {
                 padding: 10px 5px !important;
-                transition: transform 0.3s ease, opacity 0.3s ease;
+                transition: transform 0.3s ease, opacity 0.3s ease !important;
                 will-change: transform, opacity;
+                position: fixed !important;
+                width: 100% !important;
+                top: 0 !important;
+                left: 0 !important;
+                z-index: 1000 !important;
+            }
+            
+            /* Add extra padding to content to offset fixed header */
+            .main-layout {
+                padding-top: 180px !important; /* Adjust based on your header height */
             }
             
             /* Instructions on mobile */
@@ -460,8 +470,16 @@
             
             /* Ensure smoother hiding and showing */
             .header-section:not(.sticky-visible) {
-                transform: translateY(-100%);
-                opacity: 0;
+                transform: translateY(-100%) !important;
+                opacity: 0 !important;
+                pointer-events: none !important;
+            }
+            
+            /* Visible header */
+            .header-section.sticky-visible {
+                transform: translateY(0) !important;
+                opacity: 1 !important;
+                pointer-events: auto !important;
             }
             
             /* Mobile search bar improvements */
@@ -1241,6 +1259,34 @@
             
             // Handle scroll events for smart header
             useEffect(() => {
+                // Variable to track touch direction for mobile
+                let touchStartY = 0;
+                
+                // Handle touch start for better mobile scroll detection
+                const handleTouchStart = (e) => {
+                    touchStartY = e.touches[0].clientY;
+                };
+                
+                // Handle touch move/end for mobile scroll detection
+                const handleTouchMove = (e) => {
+                    const touchY = e.touches[0].clientY;
+                    const diff = touchStartY - touchY;
+                    
+                    // Going up (negative diff)
+                    if (diff < -10) {
+                        setHeaderVisible(true);
+                    } 
+                    // Going down (positive diff)
+                    else if (diff > 10) {
+                        setHeaderVisible(false);
+                        if (isExpanded) {
+                            setIsExpanded(false);
+                        }
+                    }
+                    
+                    touchStartY = touchY;
+                };
+                
                 const handleScroll = () => {
                     const currentScrollY = window.scrollY;
                     
@@ -1254,13 +1300,12 @@
                             setIsExpanded(true);
                         }
                     } else if (currentScrollY < lastScrollY) {
-                        // Scrolling up - only show header if we've scrolled up enough
-                        // This prevents the header from reappearing with tiny scroll movements
-                        if (lastScrollY - currentScrollY > 20) {
+                        // Scrolling up - more sensitive on mobile
+                        if (lastScrollY - currentScrollY > 10) {
                             setHeaderVisible(true);
                         }
                     } else {
-                        // Scrolling down - hide header
+                        // Scrolling down - hide header immediately on mobile
                         setHeaderVisible(false);
                         
                         // When scrolling down, always collapse instructions
@@ -1272,7 +1317,10 @@
                     setLastScrollY(currentScrollY);
                 };
                 
+                // Add all event listeners
                 window.addEventListener('scroll', handleScroll, { passive: true });
+                window.addEventListener('touchstart', handleTouchStart, { passive: true });
+                window.addEventListener('touchmove', handleTouchMove, { passive: true });
                 
                 // Listen for resize events to optimize for mobile
                 const handleResize = () => {
@@ -1284,14 +1332,27 @@
                             searchInput.style.fontSize = '16px';
                         }
                     }
+                    
+                    // Always adjust content padding based on header height
+                    // This works for all screen sizes but is especially important for mobile
+                    const headerHeight = document.querySelector('.header-section')?.offsetHeight || 180;
+                    const mainLayout = document.querySelector('.main-layout');
+                    if (mainLayout) {
+                        mainLayout.style.paddingTop = `${headerHeight}px`;
+                    }
                 };
                 
                 window.addEventListener('resize', handleResize);
                 // Call once on mount to apply styles
                 handleResize();
                 
+                // Check header height after a short delay to ensure all content is rendered
+                setTimeout(handleResize, 500);
+                
                 return () => {
                     window.removeEventListener('scroll', handleScroll);
+                    window.removeEventListener('touchstart', handleTouchStart);
+                    window.removeEventListener('touchmove', handleTouchMove);
                     window.removeEventListener('resize', handleResize);
                 };
             }, [lastScrollY, isExpanded]);
@@ -1348,11 +1409,81 @@
                                         🔍 So funktioniert die Suche:
                                     </p>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                                        <p style={{ margin: '0' }}>Gib deinen Namen ein ODER klicke auf deinen Namen in einer Aufgabe, um alle deine Aufgaben zu sehen</p>
-                                        <p style={{ margin: '0' }}>Tag oder Aufgabe filtern über die Dropdown-Menüs</p>
-                                        <p style={{ margin: '0' }}>Klicke erneut auf deinen Namen, um den Filter aufzuheben</p>
-                                        <p style={{ margin: '0' }}>Ergebnisse per WhatsApp an dich selbst oder andere senden</p>
-                                        <p style={{ margin: '0' }}>PDF erstellen oder Aufgaben ausdrucken</p>
+                                        <p style={{ margin: '0', display: 'flex', alignItems: 'center' }}>
+                                            <span style={{ 
+                                                color: '#FFD700', 
+                                                fontSize: '18px', 
+                                                marginRight: '8px', 
+                                                display: 'inline-block',
+                                                lineHeight: '14px',
+                                                width: '14px',
+                                                height: '14px',
+                                                borderRadius: '50%',
+                                                background: 'rgba(255, 215, 0, 0.2)', 
+                                                textAlign: 'center' 
+                                            }}>•</span>
+                                            Gib deinen Namen ein ODER klicke auf deinen Namen in einer Aufgabe, um alle deine Aufgaben zu sehen
+                                        </p>
+                                        <p style={{ margin: '0', display: 'flex', alignItems: 'center' }}>
+                                            <span style={{ 
+                                                color: '#FFD700', 
+                                                fontSize: '18px', 
+                                                marginRight: '8px', 
+                                                display: 'inline-block',
+                                                lineHeight: '14px',
+                                                width: '14px',
+                                                height: '14px',
+                                                borderRadius: '50%',
+                                                background: 'rgba(255, 215, 0, 0.2)', 
+                                                textAlign: 'center' 
+                                            }}>•</span>
+                                            Tag oder Aufgabe filtern über die Dropdown-Menüs
+                                        </p>
+                                        <p style={{ margin: '0', display: 'flex', alignItems: 'center' }}>
+                                            <span style={{ 
+                                                color: '#FFD700', 
+                                                fontSize: '18px', 
+                                                marginRight: '8px', 
+                                                display: 'inline-block',
+                                                lineHeight: '14px',
+                                                width: '14px',
+                                                height: '14px',
+                                                borderRadius: '50%',
+                                                background: 'rgba(255, 215, 0, 0.2)', 
+                                                textAlign: 'center' 
+                                            }}>•</span>
+                                            Klicke erneut auf deinen Namen, um den Filter aufzuheben
+                                        </p>
+                                        <p style={{ margin: '0', display: 'flex', alignItems: 'center' }}>
+                                            <span style={{ 
+                                                color: '#FFD700', 
+                                                fontSize: '18px', 
+                                                marginRight: '8px', 
+                                                display: 'inline-block',
+                                                lineHeight: '14px',
+                                                width: '14px',
+                                                height: '14px',
+                                                borderRadius: '50%',
+                                                background: 'rgba(255, 215, 0, 0.2)', 
+                                                textAlign: 'center' 
+                                            }}>•</span>
+                                            Ergebnisse per WhatsApp an dich selbst oder andere senden
+                                        </p>
+                                        <p style={{ margin: '0', display: 'flex', alignItems: 'center' }}>
+                                            <span style={{ 
+                                                color: '#FFD700', 
+                                                fontSize: '18px', 
+                                                marginRight: '8px', 
+                                                display: 'inline-block',
+                                                lineHeight: '14px',
+                                                width: '14px',
+                                                height: '14px',
+                                                borderRadius: '50%',
+                                                background: 'rgba(255, 215, 0, 0.2)', 
+                                                textAlign: 'center' 
+                                            }}>•</span>
+                                            PDF erstellen oder Aufgaben ausdrucken
+                                        </p>
                                     </div>
                                 </div>
                             )}
