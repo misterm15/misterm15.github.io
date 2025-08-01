@@ -275,6 +275,12 @@
             top: 0;
             z-index: 100;
             padding: 20px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        /* Special styling for header when sticked to top and visible */
+        .header-section.sticky-visible {
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         }
         
         /* Scrollable content area */
@@ -296,6 +302,12 @@
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(-10px); }
             to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes pulseHighlight {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
         }
         
         /* Mobile optimizations */
@@ -381,6 +393,15 @@
                 padding: 4px 8px !important;
             }
             
+            /* Selected person tag styles */
+            .person-tag.selected {
+                background: rgba(255, 215, 0, 0.3) !important;
+                border: 1px solid rgba(255, 215, 0, 0.6) !important;
+                color: #000 !important;
+                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2) !important;
+                animation: pulseHighlight 0.4s ease !important;
+            }
+            
             /* Improved mobile header appearance */
             .header-section {
                 padding: 10px 5px !important;
@@ -392,6 +413,14 @@
                 min-height: 36px !important;
             }
             
+            /* Mobile search bar improvements */
+            .primary-search input:focus {
+                outline: none;
+                border-color: #FFD700;
+                background: rgba(0, 0, 0, 0.4);
+                box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.2);
+            }
+            
             /* Super small screens */
             @media (max-width: 380px) {
                 .filter-container h1 {
@@ -400,7 +429,7 @@
                 
                 .primary-search input {
                     font-size: 14px !important;
-                    padding: 12px 40px 12px 12px !important;
+                    padding: 10px 40px 10px 12px !important;
                 }
                 
                 /* Vertical alignment for filter controls */
@@ -416,6 +445,33 @@
                 
                 .task-search {
                     width: 100% !important;
+                }
+                
+                /* Compact secondary filters */
+                .secondary-filters {
+                    flex-direction: column !important;
+                    align-items: stretch !important;
+                }
+                
+                .filter-select, .task-search-combo {
+                    width: 100% !important;
+                    margin-bottom: 8px !important;
+                }
+                
+                .nav-btn {
+                    align-self: center !important;
+                }
+            }
+            
+            /* Special styling for active search on mobile */
+            @media (max-width: 480px) {
+                .primary-search:focus-within {
+                    position: relative;
+                    z-index: 200;
+                }
+                
+                .primary-search:focus-within input {
+                    box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.3);
                 }
             }
         }
@@ -437,10 +493,20 @@
             color: #FFD700;
             font-size: 18px;
             text-align: center;
+            transition: all 0.3s ease;
         }
         
         .primary-search input::placeholder {
             color: rgba(255, 215, 0, 0.6);
+        }
+        
+        /* Search input optimizations for mobile */
+        @media (max-width: 480px) {
+            .primary-search input {
+                padding: 12px 30px 12px 12px;
+                font-size: 16px;
+                text-align: left;
+            }
         }
         
         .primary-search input:focus {
@@ -484,6 +550,31 @@
             align-items: center;
             flex-wrap: wrap;
             margin-top: 15px;
+        }
+        
+        /* Responsive adjustments for secondary filters */
+        @media (max-width: 480px) {
+            .secondary-filters {
+                gap: 8px;
+                margin-top: 10px;
+            }
+            
+            .filter-select, .task-search-combo {
+                flex: 1;
+                min-width: 0;
+            }
+            
+            /* Make buttons more tap-friendly on mobile */
+            .nav-btn, 
+            .search-clear-btn,
+            .task-dropdown-btn,
+            .task-search-clear {
+                min-width: 36px;
+                min-height: 36px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
         }
         
         /* Filter controls */
@@ -1094,8 +1185,8 @@
             // Smart header that hides on scroll down, shows on scroll up
             const [headerVisible, setHeaderVisible] = useState(true);
             const [lastScrollY, setLastScrollY] = useState(0);
-            // On mobile start with collapsed instructions, on desktop expanded
-            const [isExpanded, setIsExpanded] = useState(window.innerWidth > 768);
+            // Start with expanded instructions by default
+            const [isExpanded, setIsExpanded] = useState(true);
             
             // Handle scroll events for smart header
             useEffect(() => {
@@ -1106,12 +1197,22 @@
                     if (currentScrollY <= 10) {
                         // Always show at top
                         setHeaderVisible(true);
+                        
+                        // If we're at the top, expand instructions again
+                        if (currentScrollY === 0) {
+                            setIsExpanded(true);
+                        }
                     } else if (currentScrollY < lastScrollY) {
                         // Scrolling up
                         setHeaderVisible(true);
                     } else {
                         // Scrolling down
                         setHeaderVisible(false);
+                        
+                        // If we're scrolling down and instructions are visible, collapse them
+                        if (currentScrollY > 50 && isExpanded) {
+                            setIsExpanded(false);
+                        }
                     }
                     
                     setLastScrollY(currentScrollY);
@@ -1119,18 +1220,33 @@
                 
                 window.addEventListener('scroll', handleScroll, { passive: true });
                 
+                // Listen for resize events to optimize for mobile
+                const handleResize = () => {
+                    // Set smaller initial search bar padding on mobile
+                    if (window.innerWidth < 480) {
+                        const searchInput = document.querySelector('.primary-search input');
+                        if (searchInput) {
+                            searchInput.style.padding = '12px 30px 12px 12px';
+                            searchInput.style.fontSize = '16px';
+                        }
+                    }
+                };
+                
+                window.addEventListener('resize', handleResize);
+                // Call once on mount to apply styles
+                handleResize();
+                
                 return () => {
                     window.removeEventListener('scroll', handleScroll);
+                    window.removeEventListener('resize', handleResize);
                 };
-            }, [lastScrollY]);
+            }, [lastScrollY, isExpanded]);
             
             return (
                 <div className="main-layout">
                     {/* Smart Header with Filters - Hides on scroll down, Shows on scroll up */}
-                    <div className="header-section" style={{ 
-                        transform: headerVisible ? 'translateY(0)' : 'translateY(-100%)', 
-                        transition: 'transform 0.3s ease',
-                        boxShadow: '0 2px 10px rgba(0, 0, 0, 0.2)'
+                    <div className={`header-section ${lastScrollY > 10 && headerVisible ? 'sticky-visible' : ''}`} style={{ 
+                        transform: headerVisible ? 'translateY(0)' : 'translateY(-100%)',
                     }}>
                         <div className="filter-container">
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
@@ -1180,6 +1296,7 @@
                                     <ul style={{ margin: '0', paddingLeft: '20px', listStyleType: 'disc' }}>
                                         <li>Namen eingeben, um persönliche Aufgaben zu finden</li>
                                         <li>Tag oder Aufgabe filtern über die Dropdown-Menüs</li>
+                                        <li>Auf einen Namen klicken, um zu filtern (nochmal klicken zum Aufheben)</li>
                                         <li>Ergebnisse per WhatsApp an dich selbst oder andere senden</li>
                                         <li>PDF erstellen oder Aufgaben ausdrucken</li>
                                     </ul>
@@ -1522,8 +1639,16 @@
                                                 task.persons.map((person, personIndex) => (
                                                     <span 
                                                         key={personIndex} 
-                                                        className="person-tag" 
-                                                        onClick={() => setSearchTerm(person)}
+                                                        className={`person-tag ${searchTerm && person.toLowerCase() === searchTerm.toLowerCase() ? 'selected' : ''}`}
+                                                        onClick={() => {
+                                                            // Toggle behavior: if already filtered by this person, clear the filter
+                                                            // Otherwise, set this person as the filter
+                                                            if (searchTerm && person.toLowerCase() === searchTerm.toLowerCase()) {
+                                                                setSearchTerm(''); // Clear the filter
+                                                            } else {
+                                                                setSearchTerm(person); // Set the filter
+                                                            }
+                                                        }}
                                                         style={{
                                                             background: searchTerm && person.toLowerCase().includes(searchTerm.toLowerCase())
                                                                 ? 'rgba(255, 215, 0, 0.3)' // Highlight searched person
@@ -1549,9 +1674,14 @@
                                                             e.currentTarget.style.transform = 'translateY(0)';
                                                             e.currentTarget.style.boxShadow = 'none';
                                                         }}
-                                                        title={`Nach "${person}" filtern`}
+                                                        title={searchTerm && person.toLowerCase() === searchTerm.toLowerCase() 
+                                                            ? `Filter für "${person}" aufheben` 
+                                                            : `Nach "${person}" filtern`}
                                                     >
                                                         {person}
+                                                        {searchTerm && person.toLowerCase() === searchTerm.toLowerCase() && (
+                                                            <span style={{ marginLeft: '5px', fontSize: '10px', opacity: 0.7 }}>✕</span>
+                                                        )}
                                                     </span>
                                                 ))
                                             ) : (
