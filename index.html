@@ -1608,9 +1608,26 @@
                 
                 // Throttled scroll handler to prevent performance issues
                 let scrollTimer = null;
+                let lastScrollPos = 0; // Track last position for immediate comparison
+                
                 const handleScroll = () => {
                     // Don't run if we already have a pending timer
                     if (scrollTimer) return;
+                    
+                    // Get current scroll position for immediate check
+                    const currentPos = window.scrollY;
+                    const isScrollingDown = currentPos > lastScrollPos;
+                    lastScrollPos = currentPos;
+                    
+                    // Direct DOM manipulation for immediate effect (before React state updates)
+                    // If scrolling down and not already hidden, hide the header immediately
+                    if (isScrollingDown && currentPos > 30 && !manuallyHidden) {
+                        const header = document.querySelector('.header-section');
+                        if (header) {
+                            header.style.transform = 'translateY(-100%)';
+                            header.style.opacity = '0';
+                        }
+                    }
                     
                     // Use requestAnimationFrame for smooth performance
                     scrollTimer = requestAnimationFrame(() => {
@@ -1649,14 +1666,15 @@
                         }
                         // Scrolling down - hide header if we've scrolled enough
                         else if (currentScrollY > lastScrollY) {
-                            // Reduced threshold - make it easier to trigger on scroll down
-                            // Always call toggleHeaderManually on any scroll down if not already hidden
-                            if (!manuallyHidden && currentScrollY > 30) {
-                                // This will completely hide the search bar and instructions - same as button press
+                            // Always hide on scroll down at any distance
+                            if (!manuallyHidden) {
                                 console.log('IMPORTANT: Hiding header on scroll down:', currentScrollY);
-                                toggleHeaderManually();
                                 
-                                // Ensure the header is actually hidden in the DOM
+                                // Set state first
+                                setHeaderVisible(false);
+                                setManuallyHidden(true);
+                                
+                                // FORCEFULLY hide the header using direct DOM manipulation
                                 const header = document.querySelector('.header-section');
                                 if (header) {
                                     header.style.transform = 'translateY(-100%)';
@@ -1665,16 +1683,23 @@
                                     header.classList.remove('sticky-visible');
                                 }
                                 
-                                // Force update the button text
+                                // Reset content padding immediately
+                                const content = document.querySelector('.content-section');
+                                if (content) {
+                                    content.style.paddingTop = '40px';
+                                }
+                                
+                                // Force update the button text and style
                                 const toggleBtn = document.getElementById('header-toggle-button');
                                 if (toggleBtn) {
                                     toggleBtn.textContent = '▲ Suche anzeigen';
                                     toggleBtn.style.borderRadius = '20px';
                                     toggleBtn.style.top = '5px';
+                                    toggleBtn.style.background = 'rgba(255, 215, 0, 0.4)';
                                 }
-                            } else if (manuallyHidden) {
-                                // If already manually hidden, just ensure instructions are collapsed
-                                setIsExpanded(false);
+                                
+                                // Add manually hidden class to body
+                                document.body.classList.add('manually-hidden-header');
                             }
                         }
                         
@@ -1936,13 +1961,36 @@
             
             // Function to toggle header visibility manually with improved positioning updates
             const toggleHeaderManually = () => {
+                console.log("Toggle header button clicked!");
+                
                 const newHiddenState = !manuallyHidden;
                 setManuallyHidden(newHiddenState);
                 
-                // Update button text directly to ensure it's always in sync
+                // FORCEFULLY update the header state in the DOM
+                const header = document.querySelector('.header-section');
+                if (header) {
+                    if (newHiddenState) {
+                        // Hide the header
+                        header.style.transform = 'translateY(-100%)';
+                        header.style.opacity = '0';
+                        header.style.pointerEvents = 'none';
+                        header.classList.remove('sticky-visible');
+                    } else {
+                        // Show the header
+                        header.style.transform = 'translateY(0)';
+                        header.style.opacity = '1';
+                        header.style.pointerEvents = 'auto';
+                        header.classList.add('sticky-visible');
+                    }
+                }
+                
+                // Update button text and style directly
                 const toggleBtn = document.getElementById('header-toggle-button');
                 if (toggleBtn) {
                     toggleBtn.textContent = newHiddenState ? '▲ Suche anzeigen' : '▼ Suche ausblenden';
+                    toggleBtn.style.borderRadius = newHiddenState ? '20px' : '0 0 20px 20px';
+                    toggleBtn.style.top = newHiddenState ? '5px' : '0';
+                    toggleBtn.style.background = newHiddenState ? 'rgba(255, 215, 0, 0.4)' : 'rgba(255, 215, 0, 0.2)';
                 }
                 
                 // Reset content padding immediately to prevent gap issues
@@ -2130,7 +2178,42 @@
                     <button 
                         id="header-toggle-button"
                         className="header-toggle-btn"
-                        onClick={toggleHeaderManually}
+                        onClick={() => {
+                            console.log("Button clicked directly");
+                            toggleHeaderManually();
+                        }}
+                        onDoubleClick={() => {
+                            // Force extreme action on double-click if something is stuck
+                            console.log("FORCE TOGGLE via double-click");
+                            const header = document.querySelector('.header-section');
+                            const btn = document.getElementById('header-toggle-button');
+                            const content = document.querySelector('.content-section');
+                            
+                            if (header && btn) {
+                                // Toggle visibility directly
+                                if (header.style.opacity === '0' || header.style.transform.includes('-100%')) {
+                                    // Show header
+                                    header.style.transform = 'translateY(0)';
+                                    header.style.opacity = '1';
+                                    header.style.pointerEvents = 'auto';
+                                    btn.textContent = '▼ Suche ausblenden';
+                                    btn.style.borderRadius = '0 0 20px 20px';
+                                    btn.style.top = '0';
+                                    if (content) content.style.paddingTop = '200px';
+                                    setManuallyHidden(false);
+                                } else {
+                                    // Hide header
+                                    header.style.transform = 'translateY(-100%)';
+                                    header.style.opacity = '0';
+                                    header.style.pointerEvents = 'none';
+                                    btn.textContent = '▲ Suche anzeigen';
+                                    btn.style.borderRadius = '20px';
+                                    btn.style.top = '5px';
+                                    if (content) content.style.paddingTop = '40px';
+                                    setManuallyHidden(true);
+                                }
+                            }
+                        }}
                         style={{
                             position: 'fixed',
                             top: manuallyHidden ? '5px' : '0',
