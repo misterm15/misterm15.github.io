@@ -1546,8 +1546,21 @@
             // User can manually toggle header visibility
             const [manuallyHidden, setManuallyHidden] = useState(false);
             
+            // Add console log to show we're initializing our component
+            console.log("TaskViewer component initializing - React version");
+            
             // Handle scroll events for smart header
             useEffect(() => {
+                console.log("Setting up scroll handlers - React version");
+                
+                // Check for presence of required elements and log results
+                const header = document.querySelector('.header-section');
+                const content = document.querySelector('.content-section');
+                console.log("Elements check:", { 
+                    header: header ? "Found" : "Missing",
+                    content: content ? "Found" : "Missing"
+                });
+                
                 // Variable to track touch direction for mobile
                 let touchStartY = 0;
                 
@@ -1570,21 +1583,21 @@
                     touchMoveTimer = setTimeout(() => {
                         // Going up (negative diff)
                         if (diff < -15) {
-                            // If at the top and header was hidden, restore it
+                            // Only restore header if we're at the very top of the page
                             if (window.scrollY <= 20 && manuallyHidden) {
-                                toggleHeaderManually();
-                            } else {
-                                setHeaderVisible(true);
+                                toggleHeaderManually(); // Use same function as button press
                             }
+                            // Don't automatically show header when swiping up anywhere else
+                            // User must press the button to restore it
                         } 
                         // Going down (positive diff)
-                        else if (diff > 15) {
-                            // If significant downward swipe, hide the header completely
-                            if (diff > 50 && !manuallyHidden && window.scrollY > 100) {
-                                toggleHeaderManually();
-                            } else {
-                                setHeaderVisible(false);
-                                // Always collapse instructions on downward swipe
+                        else if (diff > 10) {  // More sensitive detection
+                            // Hide the header with any downward swipe if not already hidden
+                            if (!manuallyHidden && window.scrollY > 30) {
+                                console.log('Hiding header on touch down: ', diff);
+                                toggleHeaderManually(); // Use same function as button press, for consistency
+                            } else if (manuallyHidden) {
+                                // If already manually hidden, ensure instructions stay collapsed
                                 setIsExpanded(false);
                             }
                         }
@@ -1606,11 +1619,21 @@
                         // Calculate how much we've scrolled since last check
                         const scrollDelta = Math.abs(currentScrollY - lastScrollY);
                         
+                        // Only log every 10 scroll events to avoid flooding the console
+                        if (Math.random() < 0.1) {
+                            console.log('React Header: Scroll event', { 
+                                currentY: Math.round(currentScrollY), 
+                                delta: Math.round(scrollDelta),
+                                direction: currentScrollY > lastScrollY ? 'DOWN' : 'UP',
+                                headerState: manuallyHidden ? 'HIDDEN' : 'VISIBLE'
+                            });
+                        }
+                        
                         // Always show header at the very top of the page
                         if (currentScrollY <= 20) {
                             // If the header was manually hidden by scrolling down, show it again when at top
                             if (manuallyHidden) {
-                                toggleHeaderManually(); // Restore the search bar
+                                toggleHeaderManually(); // Restore the search bar - uses the same function as button press
                             } else {
                                 setHeaderVisible(true);
                             }
@@ -1618,26 +1641,39 @@
                             // Don't auto-expand instructions even at the top
                             // User must click the button to show them
                         } 
-                        // Scrolling up - show header if we've scrolled enough to notice
+                        // Scrolling up - DON'T show the header automatically when scrolling up
+                        // User must manually click the button to show it again after it's hidden
                         else if (currentScrollY < lastScrollY && scrollDelta > 20) {
-                            setHeaderVisible(true);
+                            // Do nothing - keep header hidden when scrolling up
+                            // Only toggle button press will restore it
                         }
                         // Scrolling down - hide header if we've scrolled enough
-                        else if (currentScrollY > lastScrollY && scrollDelta > 25) {
-                            // Instead of just hiding the header, call the same function as when pressing the button
-                            // But only if we're not already manually hidden and we've scrolled a significant amount
-                            if (!manuallyHidden && currentScrollY > 100) {
-                                toggleHeaderManually(); // This will completely hide the search bar and instructions
+                        else if (currentScrollY > lastScrollY) {
+                            // Reduced threshold - make it easier to trigger on scroll down
+                            // Always call toggleHeaderManually on any scroll down if not already hidden
+                            if (!manuallyHidden && currentScrollY > 30) {
+                                // This will completely hide the search bar and instructions - same as button press
+                                console.log('IMPORTANT: Hiding header on scroll down:', currentScrollY);
+                                toggleHeaderManually();
                                 
-                                // Update the toggle button text directly for immediate feedback
+                                // Ensure the header is actually hidden in the DOM
+                                const header = document.querySelector('.header-section');
+                                if (header) {
+                                    header.style.transform = 'translateY(-100%)';
+                                    header.style.opacity = '0';
+                                    header.style.pointerEvents = 'none';
+                                    header.classList.remove('sticky-visible');
+                                }
+                                
+                                // Force update the button text
                                 const toggleBtn = document.getElementById('header-toggle-button');
                                 if (toggleBtn) {
                                     toggleBtn.textContent = '▲ Suche anzeigen';
+                                    toggleBtn.style.borderRadius = '20px';
+                                    toggleBtn.style.top = '5px';
                                 }
-                            } else {
-                                setHeaderVisible(false);
-                                
-                                // Always collapse instructions when scrolling down
+                            } else if (manuallyHidden) {
+                                // If already manually hidden, just ensure instructions are collapsed
                                 setIsExpanded(false);
                             }
                         }
@@ -1672,8 +1708,9 @@
                     if (toggleBtn) {
                         toggleBtn.style.opacity = window.scrollY > 10 ? '0.9' : '0.6';
                         
-                        // Update button text based on header state - respect both scroll position and manual state
-                        if (manuallyHidden || (window.scrollY > 100 && !manuallyHidden)) {
+                        // Update button text based on header state
+                        // If manually hidden (either by button press or auto-hide when scrolling), show "Show search"
+                        if (manuallyHidden || (window.scrollY > 80 && !headerVisible)) {
                             toggleBtn.textContent = '▲ Suche anzeigen';
                         } else {
                             toggleBtn.textContent = '▼ Suche ausblenden';
@@ -2124,13 +2161,22 @@
                     </button>
                     
                     {/* Smart Header with Filters - Hides on scroll down, Shows on scroll up */}
-                    <div className={`header-section ${headerVisible && !manuallyHidden ? 'sticky-visible' : ''}`} style={{
-                        transform: (headerVisible && !manuallyHidden) ? 'translateY(0)' : 'translateY(-100%)',
-                        opacity: (headerVisible && !manuallyHidden) ? 1 : 0,
-                        pointerEvents: (headerVisible && !manuallyHidden) ? 'auto' : 'none',
-                        // Don't use display:none as it causes layout shifts
-                        // and prevents smooth animations
-                    }}>
+                    <div 
+                        id="react-header-section"
+                        className={`header-section ${headerVisible && !manuallyHidden ? 'sticky-visible' : 'header-hidden'}`} 
+                        style={{
+                            transform: (headerVisible && !manuallyHidden) ? 'translateY(0)' : 'translateY(-100%)',
+                            opacity: (headerVisible && !manuallyHidden) ? 1 : 0,
+                            pointerEvents: (headerVisible && !manuallyHidden) ? 'auto' : 'none',
+                            transition: 'transform 0.3s ease-out, opacity 0.3s ease-out',
+                            position: 'fixed',
+                            top: 0,
+                            left: 0,
+                            width: '100%',
+                            zIndex: 2000,
+                            // Don't use display:none as it causes layout shifts
+                            // and prevents smooth animations
+                        }}>
                         <div className="filter-container">
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                                 <h1 style={{ color: '#FFD700', margin: 0, fontSize: '2rem' }}>
@@ -2966,7 +3012,7 @@
     <!-- Smart Header Controller JavaScript -->
 
 
-    <script src="smart-header.js"></script>
+    <!-- Removed external smart-header.js script - using inline header control in React component -->
 
 
     <!-- Hamburger Menu Implementation has been removed -->
