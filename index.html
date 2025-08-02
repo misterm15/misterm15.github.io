@@ -352,9 +352,9 @@
         
         /* Style to apply on initial page load to prevent overlap before JS runs */
         .initial-load .content-section {
-            padding-top: 450px !important; /* Even larger initial padding to ensure no overlap during load */
-            margin-top: 50px !important; /* Extra margin during initial load */
-            transition: padding-top 0.8s ease-in-out, margin-top 0.8s ease-in-out; /* Slower transition during initial adjustment */
+            padding-top: 320px !important; /* Reduced padding for better initial view of content */
+            margin-top: 20px !important; /* Reduced margin during initial load */
+            transition: padding-top 0.5s ease-in-out, margin-top 0.5s ease-in-out; /* Faster transition for better user experience */
             position: relative;
             z-index: 1000; /* Below header but above other content */
         }
@@ -437,7 +437,7 @@
         
         /* Handle initial page load state for export menu */
         .initial-load .export-menu {
-            top: 450px !important; /* Higher initial position to prevent overlap */
+            top: 320px !important; /* Lower initial position to match the screenshot */
             position: relative !important; /* Start as relative to ensure proper placement */
             z-index: 1600 !important; /* Slightly higher z-index during initial load */
         }
@@ -1509,10 +1509,10 @@
                     exportMenu.style.top = '50px';
                     exportMenu.style.position = 'sticky';
                 } else if (isInitialLoad) {
-                    // During initial load, position more defensively
-                    exportMenu.style.top = '450px';
+                    // During initial load, position to match screenshot
+                    exportMenu.style.top = '320px';
                     exportMenu.style.position = 'relative';
-                    exportMenu.style.marginTop = '20px';
+                    exportMenu.style.marginTop = '10px';
                 } else {
                     // Normal state
                     exportMenu.style.top = '390px'; // Increased to match new spacing
@@ -1628,6 +1628,12 @@
                             // But only if we're not already manually hidden and we've scrolled a significant amount
                             if (!manuallyHidden && currentScrollY > 100) {
                                 toggleHeaderManually(); // This will completely hide the search bar and instructions
+                                
+                                // Update the toggle button text directly for immediate feedback
+                                const toggleBtn = document.getElementById('header-toggle-button');
+                                if (toggleBtn) {
+                                    toggleBtn.textContent = '▲ Suche anzeigen';
+                                }
                             } else {
                                 setHeaderVisible(false);
                                 
@@ -1661,10 +1667,17 @@
                         }
                     }
                     
-                    // Also update the header toggle button appearance
-                    const toggleBtn = document.querySelector('.header-toggle-btn');
+                    // Update the header toggle button appearance and text
+                    const toggleBtn = document.getElementById('header-toggle-button');
                     if (toggleBtn) {
                         toggleBtn.style.opacity = window.scrollY > 10 ? '0.9' : '0.6';
+                        
+                        // Update button text based on header state - respect both scroll position and manual state
+                        if (manuallyHidden || (window.scrollY > 100 && !manuallyHidden)) {
+                            toggleBtn.textContent = '▲ Suche anzeigen';
+                        } else {
+                            toggleBtn.textContent = '▼ Suche ausblenden';
+                        }
                     }
                 };
                 window.addEventListener('scroll', updateScrollButtonVisibility, { passive: true });
@@ -1835,10 +1848,10 @@
                 // Add the initial-load class to prevent overlap during loading
                 document.body.classList.add('initial-load');
                 
-                // Remove the initial-load class after initialization is complete
+                // Remove the initial-load class sooner for better user experience
                 const removeInitialLoadClass = setTimeout(() => {
                     document.body.classList.remove('initial-load');
-                }, 1000); // After 1 second, should be enough time for layout calculation
+                }, 500); // Reduced to 500ms for faster initialization
                 
                 return () => {
                     clearTimeout(removeInitialLoadClass);
@@ -1888,6 +1901,19 @@
             const toggleHeaderManually = () => {
                 const newHiddenState = !manuallyHidden;
                 setManuallyHidden(newHiddenState);
+                
+                // Update button text directly to ensure it's always in sync
+                const toggleBtn = document.getElementById('header-toggle-button');
+                if (toggleBtn) {
+                    toggleBtn.textContent = newHiddenState ? '▲ Suche anzeigen' : '▼ Suche ausblenden';
+                }
+                
+                // Reset content padding immediately to prevent gap issues
+                const content = document.querySelector('.content-section');
+                if (content) {
+                    // When showing the header, use a small padding; when hiding, use more
+                    content.style.paddingTop = newHiddenState ? '40px' : '200px';
+                }
                 
                 // Add or remove class to body for CSS targeting
                 if (newHiddenState) {
@@ -2065,6 +2091,7 @@
                 <div className="main-layout">
                     {/* Toggle button for header visibility - always visible at top of content */}
                     <button 
+                        id="header-toggle-button"
                         className="header-toggle-btn"
                         onClick={toggleHeaderManually}
                         style={{
