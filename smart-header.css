@@ -13,6 +13,12 @@
     will-change: transform, opacity;
 }
 
+/* This critical rule was moved from hamburger-menu.js 
+   to ensure header behavior works correctly when scrolling */
+.main-layout {
+    padding-top: 0 !important;
+}
+
 /* Style for hiding the header */
 .header-section.header-hidden {
     transform: translateY(-100%);
