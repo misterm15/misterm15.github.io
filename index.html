@@ -482,9 +482,10 @@
         }
         
         @keyframes pulseHighlight {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
+            0% { transform: scale(1); box-shadow: 0 0 5px rgba(255, 215, 0, 0.3); }
+            40% { transform: scale(1.05); box-shadow: 0 0 15px rgba(255, 215, 0, 0.7); }
+            60% { transform: scale(1.05); box-shadow: 0 0 15px rgba(255, 215, 0, 0.7); }
+            100% { transform: scale(1); box-shadow: 0 0 5px rgba(255, 215, 0, 0.3); }
         }
         
         /* Mobile optimizations */
@@ -1569,13 +1570,21 @@
                     touchMoveTimer = setTimeout(() => {
                         // Going up (negative diff)
                         if (diff < -15) {
-                            setHeaderVisible(true);
+                            // If at the top and header was hidden, restore it
+                            if (window.scrollY <= 20 && manuallyHidden) {
+                                toggleHeaderManually();
+                            } else {
+                                setHeaderVisible(true);
+                            }
                         } 
                         // Going down (positive diff)
                         else if (diff > 15) {
-                            setHeaderVisible(false);
-                            // Only collapse instructions on more significant downward swipe
-                            if (diff > 30) {
+                            // If significant downward swipe, hide the header completely
+                            if (diff > 50 && !manuallyHidden && window.scrollY > 100) {
+                                toggleHeaderManually();
+                            } else {
+                                setHeaderVisible(false);
+                                // Always collapse instructions on downward swipe
                                 setIsExpanded(false);
                             }
                         }
@@ -1587,9 +1596,6 @@
                 // Throttled scroll handler to prevent performance issues
                 let scrollTimer = null;
                 const handleScroll = () => {
-                    // Skip auto-hiding if manually hidden
-                    if (manuallyHidden) return;
-                    
                     // Don't run if we already have a pending timer
                     if (scrollTimer) return;
                     
@@ -1602,7 +1608,12 @@
                         
                         // Always show header at the very top of the page
                         if (currentScrollY <= 20) {
-                            setHeaderVisible(true);
+                            // If the header was manually hidden by scrolling down, show it again when at top
+                            if (manuallyHidden) {
+                                toggleHeaderManually(); // Restore the search bar
+                            } else {
+                                setHeaderVisible(true);
+                            }
                             
                             // Don't auto-expand instructions even at the top
                             // User must click the button to show them
@@ -1613,10 +1624,16 @@
                         }
                         // Scrolling down - hide header if we've scrolled enough
                         else if (currentScrollY > lastScrollY && scrollDelta > 25) {
-                            setHeaderVisible(false);
-                            
-                            // Always collapse instructions when scrolling down
-                            setIsExpanded(false);
+                            // Instead of just hiding the header, call the same function as when pressing the button
+                            // But only if we're not already manually hidden and we've scrolled a significant amount
+                            if (!manuallyHidden && currentScrollY > 100) {
+                                toggleHeaderManually(); // This will completely hide the search bar and instructions
+                            } else {
+                                setHeaderVisible(false);
+                                
+                                // Always collapse instructions when scrolling down
+                                setIsExpanded(false);
+                            }
                         }
                         
                         setLastScrollY(currentScrollY);
@@ -1624,12 +1641,10 @@
                     });
                 };
                 
-                // Add all event listeners (only if not manually hidden)
-                if (!manuallyHidden) {
-                    window.addEventListener('scroll', handleScroll, { passive: true });
-                    window.addEventListener('touchstart', handleTouchStart, { passive: true });
-                    window.addEventListener('touchmove', handleTouchMove, { passive: true });
-                }
+                // Add all event listeners (always, regardless of header state)
+                window.addEventListener('scroll', handleScroll, { passive: true });
+                window.addEventListener('touchstart', handleTouchStart, { passive: true });
+                window.addEventListener('touchmove', handleTouchMove, { passive: true });
                 
                 // Also handle scroll button visibility separately from header visibility
                 const updateScrollButtonVisibility = () => {
@@ -1836,6 +1851,38 @@
                 const timer = setTimeout(updateExportMenuPosition, 100);
                 return () => clearTimeout(timer);
             }, [searchTerm, manuallyHidden, headerVisible]);
+            
+            // Effect to highlight the instructions button when scrolled down and instructions are hidden
+            useEffect(() => {
+                // If we've scrolled down and instructions are closed, highlight the button
+                const shouldHighlightButton = lastScrollY > 100 && !isExpanded && !manuallyHidden;
+                
+                // Find the instructions button
+                const instructionsButton = document.querySelector('.instructions-toggle-button');
+                if (instructionsButton) {
+                    if (shouldHighlightButton) {
+                        // Add a subtle pulse animation to draw attention, but only briefly
+                        // so it doesn't become annoying to the user
+                        instructionsButton.style.animation = 'pulseHighlight 2s ease-in-out';
+                        instructionsButton.style.boxShadow = '0 0 10px rgba(255, 215, 0, 0.5)';
+                        
+                        // Remove the animation after a few pulses
+                        setTimeout(() => {
+                            if (instructionsButton) {
+                                instructionsButton.style.animation = '';
+                                // Keep a subtle glow
+                                instructionsButton.style.boxShadow = '0 0 5px rgba(255, 215, 0, 0.3)';
+                            }
+                        }, 4000);
+                    } else {
+                        // Remove animation when not needed
+                        instructionsButton.style.animation = '';
+                        instructionsButton.style.boxShadow = isExpanded ? 
+                            '0 0 8px rgba(255, 215, 0, 0.5)' : 
+                            'none';
+                    }
+                }
+            }, [lastScrollY, isExpanded, manuallyHidden]);
             
             // Function to toggle header visibility manually with improved positioning updates
             const toggleHeaderManually = () => {
@@ -2065,18 +2112,20 @@
                                 
                                 {/* Toggle Button for Instructions */}
                                 <button 
+                                    className="instructions-toggle-button"
                                     onClick={() => setIsExpanded(!isExpanded)}
                                     style={{
-                                        background: isExpanded ? 'rgba(255, 215, 0, 0.3)' : 'rgba(255, 215, 0, 0.2)',
-                                        border: '1px solid rgba(255, 215, 0, 0.4)',
-                                        borderRadius: '16px',
-                                        padding: '5px 10px',
+                                        background: isExpanded ? 'rgba(255, 215, 0, 0.4)' : 'rgba(255, 215, 0, 0.2)',
+                                        border: '1px solid rgba(255, 215, 0, 0.5)',
+                                        borderRadius: '24px',
+                                        padding: '8px 15px',
                                         display: 'flex',
                                         justifyContent: 'center',
                                         alignItems: 'center',
                                         cursor: 'pointer',
                                         transition: 'all 0.2s ease',
-                                        color: '#FFD700',
+                                        color: isExpanded ? '#000' : '#FFD700',
+                                        fontWeight: isExpanded ? 'bold' : 'normal',
                                         fontSize: '14px',
                                         marginLeft: '15px',
                                         boxShadow: isExpanded ? '0 0 8px rgba(255, 215, 0, 0.5)' : 'none'
@@ -2090,15 +2139,15 @@
                             {/* Collapsible Instructions Box - only shown when button is clicked */}
                             {isExpanded && (
                                 <div style={{ 
-                                    background: 'rgba(255, 255, 255, 0.1)',
-                                    border: '1px solid rgba(255, 215, 0, 0.2)',
-                                    borderRadius: '8px',
-                                    padding: '10px 15px',
+                                    background: 'rgba(33, 33, 33, 0.9)',
+                                    border: '1px solid rgba(255, 215, 0, 0.3)',
+                                    borderRadius: '12px',
+                                    padding: '15px 20px',
                                     marginBottom: '15px',
                                     fontSize: '14px',
                                     color: '#fff',
                                     animation: 'fadeIn 0.4s ease',
-                                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
                                     maxHeight: '500px',
                                     overflow: 'hidden',
                                     transition: 'all 0.4s ease'
