@@ -23,6 +23,9 @@
     <!-- html2pdf for PDF export -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     
+    <!-- Smart Header Controller CSS -->
+    <link rel="stylesheet" href="smart-header.css">
+    
     <style>
         /* Print styles */
         @media print {
@@ -474,24 +477,29 @@
                 min-height: 36px !important;
             }
             
-            /* Ensure smoother hiding and showing */
-            .header-section:not(.sticky-visible) {
+            /* Header hiding - simplified for better performance */
+            .header-section.header-hidden {
+                /* Use transform for smoother animations - this property is GPU accelerated */
                 transform: translateY(-100%) !important;
+                /* Make it completely invisible */
                 opacity: 0 !important;
+                /* Prevent interaction with hidden element */
                 pointer-events: none !important;
-                visibility: hidden !important; /* Added for Firefox compatibility */
-                display: none !important; /* Force full hiding on mobile devices */
-                position: absolute !important; /* Remove from flow when hidden */
+                /* Accessibility & SEO considerations */
+                visibility: hidden !important;
+                /* For older browsers & complete hiding */
+                position: absolute !important;
+                top: -9999px !important;
             }
             
             /* Visible header */
-            .header-section.sticky-visible {
-                transform: translateY(0) !important;
-                opacity: 1 !important;
-                pointer-events: auto !important;
-                visibility: visible !important; /* Added for Firefox compatibility */
-                display: block !important;
-                position: fixed !important; /* Keep fixed when visible */
+            .header-section {
+                transform: translateY(0);
+                opacity: 1;
+                pointer-events: auto;
+                visibility: visible;
+                position: fixed !important;
+                transition: transform 0.3s ease, opacity 0.2s ease;
             }
             
             /* Mobile search bar improvements */
@@ -1397,7 +1405,7 @@
                         <div className="filter-container">
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                                 <h1 style={{ color: '#FFD700', margin: 0, fontSize: '2rem' }}>
-                                    Dienstplan 2025
+                                    Dienstplan 2025 test
                                 </h1>
                                 
                                 {/* Toggle Button for Instructions */}
@@ -2138,9 +2146,11 @@
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
     </script>
+    
+    <!-- Smart Header Controller JavaScript -->
+    <script src="smart-header.js"></script>
 </body>
 </html>
-
 
 
 
