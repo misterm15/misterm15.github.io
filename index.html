@@ -299,12 +299,41 @@
             }
         }
         
+        /* Ripple effect animation for person tags */
+        @keyframes ripple {
+            0% {
+                transform: scale(0);
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.8;
+            }
+            100% {
+                transform: scale(2);
+                opacity: 0;
+            }
+        }
+        
+        /* Pulse animation for selected person tags */
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(255, 215, 0, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(255, 215, 0, 0);
+            }
+        }
+        
         /* Main layout for task viewer */
         .main-layout {
             display: flex;
             flex-direction: column;
             height: 100vh;
-            padding-top: 200px; /* Reserve space for the header */
+            padding-top: 0; /* Let the content-section handle spacing */
+            position: relative;
         }
         
         /* Sticky header with filters */
@@ -312,11 +341,11 @@
             background: rgba(30, 30, 30, 0.95);
             backdrop-filter: blur(10px);
             border-bottom: 1px solid rgba(255, 215, 0, 0.2);
-            position: fixed; /* Changed from sticky to fixed for consistent behavior */
+            position: fixed;
             top: 0;
             left: 0;
             width: 100%;
-            z-index: 1000; /* Increased z-index */
+            z-index: 1000; /* High z-index to ensure header stays on top */
             padding: 20px;
             transition: transform 0.3s ease, box-shadow 0.3s ease, opacity 0.3s ease, visibility 0.3s ease;
             will-change: transform, opacity, visibility;
@@ -335,8 +364,25 @@
             overflow-y: auto;
             padding: 20px;
             margin-top: 0; /* Ensure no extra margin */
-            position: relative; /* Position context for children */
-            z-index: 1; /* Lower than header */
+            position: relative;
+            z-index: 5; /* Below header but above other content */
+            /* Padding-top will be set dynamically by JavaScript */
+            transition: padding-top 0.3s ease;
+        }
+        
+        /* Header toggle button */
+        .header-toggle-btn {
+            transition: all 0.2s ease;
+        }
+        
+        .header-toggle-btn:hover {
+            background: rgba(255, 215, 0, 0.3) !important;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4) !important;
+        }
+        
+        .header-toggle-btn:active {
+            transform: translateX(-50%) translateY(1px) !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
         }
         
         /* Filter container */
@@ -444,11 +490,13 @@
             
             /* Selected person tag styles */
             .person-tag.selected {
-                background: rgba(255, 215, 0, 0.3) !important;
-                border: 1px solid rgba(255, 215, 0, 0.6) !important;
+                background: rgba(255, 215, 0, 0.4) !important;
+                border: 1px solid rgba(255, 215, 0, 0.8) !important;
                 color: #000 !important;
-                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2) !important;
-                animation: pulseHighlight 0.4s ease !important;
+                box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3) !important;
+                animation: pulseHighlight 0.4s ease, pulse 1.5s infinite !important;
+                font-weight: 600 !important;
+                transform: translateY(-2px) !important;
             }
             
             /* Improved mobile header appearance */
@@ -463,9 +511,16 @@
                 z-index: 1000 !important;
             }
             
-            /* Add extra padding to content to offset fixed header */
+            /* Content section handles its own padding on mobile */
             .main-layout {
-                padding-top: 180px !important; /* Adjust based on your header height */
+                padding-top: 0 !important; /* Let the content section handle spacing */
+            }
+            
+            /* Content section on mobile - dynamic padding handled by JS */
+            .content-section {
+                position: relative !important;
+                z-index: 5 !important; /* Below header but above other elements */
+                /* Base padding to be dynamically adjusted by JS */
             }
             
             /* Instructions on mobile */
@@ -1015,6 +1070,9 @@
         .person-tag {
             cursor: pointer;
             position: relative;
+            transition: all 0.25s ease;
+            touch-action: manipulation; /* Improve touch behavior */
+            -webkit-tap-highlight-color: transparent; /* Remove default mobile tap highlight */
         }
         
         .person-tag:hover {
@@ -1025,7 +1083,29 @@
         }
         
         .person-tag:active {
-            transform: translateY(0);
+            transform: scale(0.95);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+            transition: all 0.1s ease;
+        }
+        
+        /* Badge for selected tags */
+        .person-tag.selected::after {
+            content: "✓";
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #FFD700;
+            color: #000;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            animation: fadeIn 0.3s ease;
         }
     </style>
     <!-- Smart header styles -->
@@ -1286,57 +1366,85 @@
                     touchStartY = e.touches[0].clientY;
                 };
                 
-                // Handle touch move/end for mobile scroll detection
+                // Improved touch handling with better debounce
+                let touchMoveTimer = null;
+                
                 const handleTouchMove = (e) => {
+                    // Clear any existing timeout to prevent rapid firing
+                    if (touchMoveTimer) clearTimeout(touchMoveTimer);
+                    
                     const touchY = e.touches[0].clientY;
                     const diff = touchStartY - touchY;
                     
-                    // Going up (negative diff)
-                    if (diff < -10) {
-                        setHeaderVisible(true);
-                    } 
-                    // Going down (positive diff)
-                    else if (diff > 10) {
-                        setHeaderVisible(false);
-                        // Always collapse instructions when hiding header on mobile
-                        setIsExpanded(false);
-                    }
-                    
-                    touchStartY = touchY;
+                    // Use a timeout to debounce and prevent jerky header movement
+                    touchMoveTimer = setTimeout(() => {
+                        // Going up (negative diff)
+                        if (diff < -15) {
+                            setHeaderVisible(true);
+                        } 
+                        // Going down (positive diff)
+                        else if (diff > 15) {
+                            setHeaderVisible(false);
+                            // Only collapse instructions on more significant downward swipe
+                            if (diff > 30) {
+                                setIsExpanded(false);
+                            }
+                        }
+                        
+                        touchStartY = touchY;
+                    }, 10);
                 };
                 
+                // Throttled scroll handler to prevent performance issues
+                let scrollTimer = null;
                 const handleScroll = () => {
-                    const currentScrollY = window.scrollY;
+                    // Skip auto-hiding if manually hidden
+                    if (manuallyHidden) return;
                     
-                    // Show header when scrolling up or at top, hide when scrolling down
-                    if (currentScrollY <= 10) {
-                        // Always show at top
-                        setHeaderVisible(true);
+                    // Don't run if we already have a pending timer
+                    if (scrollTimer) return;
+                    
+                    // Use requestAnimationFrame for smooth performance
+                    scrollTimer = requestAnimationFrame(() => {
+                        const currentScrollY = window.scrollY;
                         
-                        // If we're at the top, expand instructions again
-                        if (currentScrollY === 0) {
-                            setIsExpanded(true);
-                        }
-                    } else if (currentScrollY < lastScrollY) {
-                        // Scrolling up - more sensitive on mobile
-                        if (lastScrollY - currentScrollY > 10) {
+                        // Calculate how much we've scrolled since last check
+                        const scrollDelta = Math.abs(currentScrollY - lastScrollY);
+                        
+                        // Always show header at the very top of the page
+                        if (currentScrollY <= 20) {
+                            setHeaderVisible(true);
+                            
+                            // Only expand instructions at the very top
+                            if (currentScrollY <= 5) {
+                                setIsExpanded(true);
+                            }
+                        } 
+                        // Scrolling up - show header if we've scrolled enough to notice
+                        else if (currentScrollY < lastScrollY && scrollDelta > 20) {
                             setHeaderVisible(true);
                         }
-                    } else {
-                        // Scrolling down - hide header immediately on mobile
-                        setHeaderVisible(false);
+                        // Scrolling down - hide header if we've scrolled enough
+                        else if (currentScrollY > lastScrollY && scrollDelta > 25) {
+                            setHeaderVisible(false);
+                            
+                            // Only collapse instructions on significant downward scroll
+                            if (scrollDelta > 40) {
+                                setIsExpanded(false);
+                            }
+                        }
                         
-                        // Always collapse instructions when hiding header
-                        setIsExpanded(false);
-                    }
-                    
-                    setLastScrollY(currentScrollY);
+                        setLastScrollY(currentScrollY);
+                        scrollTimer = null;
+                    });
                 };
                 
-                // Add all event listeners
-                window.addEventListener('scroll', handleScroll, { passive: true });
-                window.addEventListener('touchstart', handleTouchStart, { passive: true });
-                window.addEventListener('touchmove', handleTouchMove, { passive: true });
+                // Add all event listeners (only if not manually hidden)
+                if (!manuallyHidden) {
+                    window.addEventListener('scroll', handleScroll, { passive: true });
+                    window.addEventListener('touchstart', handleTouchStart, { passive: true });
+                    window.addEventListener('touchmove', handleTouchMove, { passive: true });
+                }
                 
                 // Also handle scroll button visibility separately from header visibility
                 const updateScrollButtonVisibility = () => {
@@ -1351,6 +1459,12 @@
                             scrollButton.style.pointerEvents = 'none';
                             scrollButton.style.transform = 'scale(0.95)';
                         }
+                    }
+                    
+                    // Also update the header toggle button appearance
+                    const toggleBtn = document.querySelector('.header-toggle-btn');
+                    if (toggleBtn) {
+                        toggleBtn.style.opacity = window.scrollY > 10 ? '0.9' : '0.6';
                     }
                 };
                 window.addEventListener('scroll', updateScrollButtonVisibility, { passive: true });
@@ -1385,21 +1499,112 @@
                 setTimeout(handleResize, 500);
                 
                 return () => {
+                    // Clean up all event listeners
                     window.removeEventListener('scroll', handleScroll);
                     window.removeEventListener('touchstart', handleTouchStart);
                     window.removeEventListener('touchmove', handleTouchMove);
                     window.removeEventListener('resize', handleResize);
                     window.removeEventListener('scroll', updateScrollButtonVisibility);
+                    
+                    // Clear any pending timers
+                    if (touchMoveTimer) clearTimeout(touchMoveTimer);
+                    if (scrollTimer) cancelAnimationFrame(scrollTimer);
                 };
+            }, [lastScrollY, isExpanded, manuallyHidden]); // Add manuallyHidden to dependencies
             }, [lastScrollY, isExpanded]);
+            
+            // User can manually toggle header visibility
+            const [manuallyHidden, setManuallyHidden] = useState(false);
+            
+            // Calculate header height for proper content padding
+            useEffect(() => {
+                const updateContentPadding = () => {
+                    const header = document.querySelector('.header-section');
+                    const content = document.querySelector('.content-section');
+                    
+                    if (header && content) {
+                        // Fixed padding when header is manually hidden
+                        if (manuallyHidden) {
+                            // Just enough room for the toggle button
+                            content.style.paddingTop = '40px';
+                            return;
+                        }
+                        
+                        // Get the actual height of the header
+                        const headerHeight = header.offsetHeight;
+                        // Add some buffer (20px) to prevent content from being hidden
+                        content.style.paddingTop = `${headerHeight + 20}px`;
+                    }
+                };
+                
+                // Run on mount and whenever header visibility changes
+                updateContentPadding();
+                
+                // Also run after a short delay to ensure accurate calculations
+                const timer = setTimeout(updateContentPadding, 300);
+                
+                // And whenever window is resized
+                window.addEventListener('resize', updateContentPadding);
+                
+                return () => {
+                    clearTimeout(timer);
+                    window.removeEventListener('resize', updateContentPadding);
+                };
+            }, [headerVisible, isExpanded, manuallyHidden]);
+            
+            // Function to toggle header visibility manually
+            const toggleHeaderManually = () => {
+                setManuallyHidden(!manuallyHidden);
+                // Ensure header is properly positioned when showing again
+                if (manuallyHidden) {
+                    setHeaderVisible(true);
+                    // Short delay to let the CSS transition finish before measuring height
+                    setTimeout(() => {
+                        const header = document.querySelector('.header-section');
+                        const content = document.querySelector('.content-section');
+                        if (header && content) {
+                            content.style.paddingTop = `${header.offsetHeight + 20}px`;
+                        }
+                    }, 300);
+                }
+            };
             
             return (
                 <div className="main-layout">
+                    {/* Toggle button for header visibility - always visible at top of content */}
+                    <button 
+                        className="header-toggle-btn"
+                        onClick={toggleHeaderManually}
+                        style={{
+                            position: 'fixed',
+                            top: '5px',
+                            left: '50%',
+                            transform: 'translateX(-50%)',
+                            background: 'rgba(255, 215, 0, 0.2)',
+                            border: '1px solid rgba(255, 215, 0, 0.4)',
+                            borderRadius: '20px',
+                            padding: '4px 12px',
+                            fontSize: '12px',
+                            color: '#FFD700',
+                            cursor: 'pointer',
+                            zIndex: 1001, // Higher than header
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            boxShadow: '0 2px 6px rgba(0, 0, 0, 0.3)',
+                            transition: 'all 0.2s ease',
+                        }}
+                    >
+                        {manuallyHidden ? '▲ Suche anzeigen' : '▼ Suche ausblenden'}
+                    </button>
+                    
                     {/* Smart Header with Filters - Hides on scroll down, Shows on scroll up */}
-                    <div className={`header-section ${headerVisible ? 'sticky-visible' : ''}`} style={{
-                        opacity: headerVisible ? 1 : 0,
-                        visibility: headerVisible ? 'visible' : 'hidden',
-                        display: headerVisible ? 'block' : 'none'
+                    <div className={`header-section ${headerVisible && !manuallyHidden ? 'sticky-visible' : ''}`} style={{
+                        transform: (headerVisible && !manuallyHidden) ? 'translateY(0)' : 'translateY(-100%)',
+                        opacity: (headerVisible && !manuallyHidden) ? 1 : 0,
+                        pointerEvents: (headerVisible && !manuallyHidden) ? 'auto' : 'none',
+                        // Don't use display:none as it causes layout shifts
+                        // and prevents smooth animations
                     }}>
                         <div className="filter-container">
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
@@ -1925,16 +2130,60 @@
                                                     <span 
                                                         key={personIndex} 
                                                         className={`person-tag ${searchTerm && person.toLowerCase() === searchTerm.toLowerCase() ? 'selected' : ''}`}
-                                                        onClick={() => {
+                                                        onClick={(e) => {
+                                                            // Add click feedback animation
+                                                            const target = e.currentTarget;
+                                                            
+                                                            // Apply a quick pulse effect
+                                                            target.style.transform = 'scale(0.95)';
+                                                            setTimeout(() => {
+                                                                target.style.transform = 'scale(1.05)';
+                                                                setTimeout(() => {
+                                                                    target.style.transform = '';
+                                                                }, 150);
+                                                            }, 150);
+                                                            
                                                             // Toggle behavior: if already filtered by this person, clear the filter
                                                             // Otherwise, set this person as the filter
                                                             if (searchTerm && person.toLowerCase() === searchTerm.toLowerCase()) {
                                                                 setSearchTerm(''); // Clear the filter
+                                                                
+                                                                // Visual feedback for clearing filter
+                                                                target.animate([
+                                                                    { backgroundColor: 'rgba(255, 215, 0, 0.3)', opacity: 1 },
+                                                                    { backgroundColor: 'rgba(255, 255, 255, 0.15)', opacity: 0.8 }
+                                                                ], { duration: 300, fill: 'forwards' });
                                                             } else {
                                                                 setSearchTerm(person); // Set the filter
+                                                                
+                                                                // Visual feedback for setting filter - ripple effect
+                                                                const ripple = document.createElement('span');
+                                                                ripple.style.position = 'absolute';
+                                                                ripple.style.borderRadius = '50%';
+                                                                ripple.style.backgroundColor = 'rgba(255, 215, 0, 0.3)';
+                                                                ripple.style.transform = 'scale(0)';
+                                                                ripple.style.animation = 'ripple 0.6s linear';
+                                                                ripple.style.opacity = '1';
+                                                                
+                                                                // Position the ripple at click point
+                                                                const rect = target.getBoundingClientRect();
+                                                                ripple.style.width = ripple.style.height = Math.max(rect.width, rect.height) + 'px';
+                                                                ripple.style.left = e.clientX - rect.left - (parseInt(ripple.style.width) / 2) + 'px';
+                                                                ripple.style.top = e.clientY - rect.top - (parseInt(ripple.style.height) / 2) + 'px';
+                                                                
+                                                                target.appendChild(ripple);
+                                                                
+                                                                // Clean up ripple element after animation
+                                                                setTimeout(() => {
+                                                                    if (ripple && ripple.parentNode === target) {
+                                                                        target.removeChild(ripple);
+                                                                    }
+                                                                }, 600);
                                                             }
                                                         }}
                                                         style={{
+                                                            position: 'relative', // For ripple effect
+                                                            overflow: 'hidden', // For ripple effect
                                                             background: searchTerm && person.toLowerCase().includes(searchTerm.toLowerCase())
                                                                 ? 'rgba(255, 215, 0, 0.3)' // Highlight searched person
                                                                 : 'rgba(255, 255, 255, 0.15)',
@@ -1949,15 +2198,39 @@
                                                                 ? '1px solid rgba(255, 215, 0, 0.6)'
                                                                 : '1px solid rgba(255, 255, 255, 0.2)',
                                                             cursor: 'pointer',
-                                                            transition: 'transform 0.2s ease, box-shadow 0.2s ease'
+                                                            transition: 'all 0.2s ease',
+                                                            userSelect: 'none', // Prevent text selection when double-clicking
+                                                            WebkitTapHighlightColor: 'transparent' // Remove default mobile tap highlight
                                                         }}
                                                         onMouseOver={(e) => {
-                                                            e.currentTarget.style.transform = 'translateY(-2px)';
-                                                            e.currentTarget.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)';
+                                                            // Only apply hover effects if not already selected
+                                                            if (!(searchTerm && person.toLowerCase() === searchTerm.toLowerCase())) {
+                                                                e.currentTarget.style.transform = 'translateY(-2px)';
+                                                                e.currentTarget.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.3)';
+                                                                e.currentTarget.style.backgroundColor = 'rgba(255, 215, 0, 0.2)';
+                                                            }
                                                         }}
                                                         onMouseOut={(e) => {
-                                                            e.currentTarget.style.transform = 'translateY(0)';
-                                                            e.currentTarget.style.boxShadow = 'none';
+                                                            // Only reset hover effects if not already selected
+                                                            if (!(searchTerm && person.toLowerCase() === searchTerm.toLowerCase())) {
+                                                                e.currentTarget.style.transform = 'translateY(0)';
+                                                                e.currentTarget.style.boxShadow = 'none';
+                                                                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
+                                                            }
+                                                        }}
+                                                        onTouchStart={(e) => {
+                                                            // Touch feedback - instantly apply a subtle effect
+                                                            if (!(searchTerm && person.toLowerCase() === searchTerm.toLowerCase())) {
+                                                                e.currentTarget.style.backgroundColor = 'rgba(255, 215, 0, 0.15)';
+                                                                e.currentTarget.style.transform = 'scale(0.98)';
+                                                            }
+                                                        }}
+                                                        onTouchEnd={(e) => {
+                                                            // Reset touch effect unless this is now selected
+                                                            if (!(searchTerm && person.toLowerCase() === searchTerm.toLowerCase())) {
+                                                                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
+                                                                e.currentTarget.style.transform = '';
+                                                            }
                                                         }}
                                                         title={searchTerm && person.toLowerCase() === searchTerm.toLowerCase() 
                                                             ? `Filter für "${person}" aufheben` 
