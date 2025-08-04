@@ -452,21 +452,6 @@
             gap: 8px !important;
         }
         
-        /* Header toggle button */
-        .header-toggle-btn {
-            transition: all 0.2s ease;
-        }
-        
-        .header-toggle-btn:hover {
-            background: rgba(255, 215, 0, 0.3) !important;
-            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4) !important;
-        }
-        
-        .header-toggle-btn:active {
-            transform: translateX(-50%) translateY(1px) !important;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
-        }
-        
         /* Filter container */
         .filter-container {
             max-width: 1200px;
@@ -1633,14 +1618,7 @@
                                     content.style.paddingTop = '40px';
                                 }
                                 
-                                // Force update the button text and style
-                                const toggleBtn = document.getElementById('header-toggle-button');
-                                if (toggleBtn) {
-                                    toggleBtn.textContent = '▲ Suche anzeigen';
-                                    toggleBtn.style.borderRadius = '20px';
-                                    toggleBtn.style.top = '5px';
-                                    toggleBtn.style.background = 'rgba(255, 215, 0, 0.4)';
-                                }
+
                                 
                                 // Add manually hidden class to body
                                 document.body.classList.add('manually-hidden-header');
@@ -1672,19 +1650,7 @@
                         }
                     }
                     
-                    // Update the header toggle button appearance and text
-                    const toggleBtn = document.getElementById('header-toggle-button');
-                    if (toggleBtn) {
-                        toggleBtn.style.opacity = window.scrollY > 10 ? '0.9' : '0.6';
-                        
-                        // Update button text based on header state
-                        // If manually hidden (either by button press or auto-hide when scrolling), show "Show search"
-                        if (manuallyHidden || (window.scrollY > 80 && !headerVisible)) {
-                            toggleBtn.textContent = '▲ Suche anzeigen';
-                        } else {
-                            toggleBtn.textContent = '▼ Suche ausblenden';
-                        }
-                    }
+
                 };
                 window.addEventListener('scroll', updateScrollButtonVisibility, { passive: true });
                 // Call immediately to set initial state
@@ -1927,14 +1893,7 @@
                     }
                 }
                 
-                // Update button text and style directly
-                const toggleBtn = document.getElementById('header-toggle-button');
-                if (toggleBtn) {
-                    toggleBtn.textContent = newHiddenState ? '▲ Suche anzeigen' : '▼ Suche ausblenden';
-                    toggleBtn.style.borderRadius = newHiddenState ? '20px' : '0 0 20px 20px';
-                    toggleBtn.style.top = newHiddenState ? '5px' : '0';
-                    toggleBtn.style.background = newHiddenState ? 'rgba(255, 215, 0, 0.4)' : 'rgba(255, 215, 0, 0.2)';
-                }
+
                 
                 // Reset content padding immediately to prevent gap issues
                 const content = document.querySelector('.content-section');
@@ -2049,72 +2008,6 @@
             
             return (
                 <div className="main-layout">
-                    {/* Toggle button for header visibility - always visible at top of content */}
-                    <button 
-                        id="header-toggle-button"
-                        className="header-toggle-btn"
-                        onClick={() => {
-                            toggleHeaderManually();
-                        }}
-                        onDoubleClick={() => {
-                            // Force extreme action on double-click if something is stuck
-                            const header = document.querySelector('.header-section');
-                            const btn = document.getElementById('header-toggle-button');
-                            const content = document.querySelector('.content-section');
-                            
-                            if (header && btn) {
-                                // Toggle visibility directly
-                                if (header.style.opacity === '0' || header.style.transform.includes('-100%')) {
-                                    // Show header
-                                    header.style.transform = 'translateY(0)';
-                                    header.style.opacity = '1';
-                                    header.style.pointerEvents = 'auto';
-                                    btn.textContent = '▼ Suche ausblenden';
-                                    btn.style.borderRadius = '0 0 20px 20px';
-                                    btn.style.top = '0';
-                                    if (content) content.style.paddingTop = '200px';
-                                    setManuallyHidden(false);
-                                } else {
-                                    // Hide header
-                                    header.style.transform = 'translateY(-100%)';
-                                    header.style.opacity = '0';
-                                    header.style.pointerEvents = 'none';
-                                    btn.textContent = '▲ Suche anzeigen';
-                                    btn.style.borderRadius = '20px';
-                                    btn.style.top = '5px';
-                                    if (content) content.style.paddingTop = '40px';
-                                    setManuallyHidden(true);
-                                }
-                            }
-                        }}
-                        style={{
-                            position: 'fixed',
-                            top: manuallyHidden ? '5px' : '0',
-                            left: '50%',
-                            transform: 'translateX(-50%)',
-                            background: manuallyHidden 
-                                ? 'rgba(255, 215, 0, 0.4)' 
-                                : 'rgba(255, 215, 0, 0.2)',
-                            border: '1px solid rgba(255, 215, 0, 0.6)',
-                            borderRadius: manuallyHidden ? '20px' : '0 0 20px 20px',
-                            padding: '8px 16px', // Larger for better visibility
-                            fontSize: '13px', // Slightly larger
-                            fontWeight: '600',
-                            color: '#FFD700',
-                            cursor: 'pointer',
-                            zIndex: 2001, // Higher than header (2000)
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            boxShadow: '0 2px 6px rgba(0, 0, 0, 0.4)',
-                            transition: 'all 0.3s ease',
-                            width: 'auto',
-                            minWidth: '120px',
-                            textShadow: '0 1px 2px rgba(0, 0, 0, 0.5)',
-                        }}
-                    >
-                        {manuallyHidden ? '▲ Suche anzeigen' : '▼ Suche ausblenden'}
-                    </button>
                     
                     {/* Smart Header with Filters - Hides on scroll down, Shows on scroll up */}
                     <div 
