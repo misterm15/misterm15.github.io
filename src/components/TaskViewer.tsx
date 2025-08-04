@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import html2pdf from 'html2pdf.js';
 import type { TaskViewerProps } from '../types';
 import { groupTasksByOriginal, sortDaysByKirmesOrder, filterTasks } from '../utils/taskUtils';
+import TypeaheadDropdown, { type TypeaheadOption } from './TypeaheadDropdown';
 
 const TaskViewer: React.FC<TaskViewerProps> = ({ tasks }) => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [nameInputValue, setNameInputValue] = useState('');
   const [selectedDay, setSelectedDay] = useState('');
   const [selectedTask, setSelectedTask] = useState('');
   const [taskSearchTerm, setTaskSearchTerm] = useState('');
@@ -14,6 +16,20 @@ const TaskViewer: React.FC<TaskViewerProps> = ({ tasks }) => {
   // Get unique days and tasks for filters
   const uniqueDays = [...new Set(tasks.map(task => task.date))].filter(Boolean);
   const uniqueTasks = [...new Set(tasks.map(task => task.task))].filter(Boolean).sort();
+
+  // Get unique names for typeahead
+  const uniqueNames = useMemo(() => {
+    const allNames = new Set<string>();
+    tasks.forEach(task => {
+      if (task.name && task.name.trim()) {
+        allNames.add(task.name.trim());
+      }
+    });
+    return Array.from(allNames).sort().map(name => ({
+      value: name,
+      label: name
+    }));
+  }, [tasks]);
 
   // Sort days in Kirmes order
   const sortedDays = sortDaysByKirmesOrder(uniqueDays);
@@ -51,8 +67,29 @@ const TaskViewer: React.FC<TaskViewerProps> = ({ tasks }) => {
 
   const clearAllFilters = () => {
     setSearchTerm('');
+    setNameInputValue('');
     setSelectedDay('');
     clearTaskSearch();
+  };
+
+  // Handle name selection from typeahead
+  const handleNameSelection = (selectedOption: TypeaheadOption | null) => {
+    if (selectedOption) {
+      setSearchTerm(selectedOption.value);
+      setNameInputValue(selectedOption.value);
+    } else {
+      setSearchTerm('');
+      setNameInputValue('');
+    }
+  };
+
+  // Handle name input change from typeahead (only update input, don't filter)
+  const handleNameInputChange = (inputValue: string) => {
+    setNameInputValue(inputValue);
+    // Only clear the search term if input is completely empty
+    if (inputValue.trim() === '') {
+      setSearchTerm('');
+    }
   };
 
   // Handle PDF export
@@ -145,43 +182,16 @@ const TaskViewer: React.FC<TaskViewerProps> = ({ tasks }) => {
           
           {/* Primary Name Search */}
           <div className="primary-search" style={{ position: 'relative', marginBottom: '15px' }}>
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+            <TypeaheadDropdown
+              options={uniqueNames}
+              value={nameInputValue}
               placeholder="Nach Namen suchen..."
-              style={{
-                width: '100%',
-                padding: '12px 40px 12px 12px',
-                borderRadius: '8px',
-                border: '2px solid var(--secondary-black)',
-                backgroundColor: 'var(--primary-yellow)',
-                color: 'var(--secondary-black)',
-                fontSize: '16px',
-                fontWeight: 'bold'
-              }}
+              onChange={handleNameSelection}
+              onInputChange={handleNameInputChange}
+              allowCustomValue={true}
+              clearable={true}
+              className=""
             />
-            {/* Clear search button */}
-            {searchTerm && (
-              <button
-                onClick={() => setSearchTerm('')}
-                style={{
-                  position: 'absolute',
-                  right: '8px',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  background: 'none',
-                  border: 'none',
-                  color: 'var(--secondary-black)',
-                  cursor: 'pointer',
-                  fontSize: '18px',
-                  fontWeight: 'bold'
-                }}
-                title="Suche löschen"
-              >
-                ✕
-              </button>
-            )}
           </div>
           
           {/* Secondary Filters */}
@@ -286,7 +296,7 @@ const TaskViewer: React.FC<TaskViewerProps> = ({ tasks }) => {
             <button 
               onClick={clearAllFilters}
               className="nav-btn"
-              disabled={!(searchTerm || selectedDay || selectedTask || taskSearchTerm)}
+              disabled={!(searchTerm || nameInputValue || selectedDay || selectedTask || taskSearchTerm)}
             >
               {searchTerm ? '👥 Alle anzeigen' : '🔄 Reset'}
             </button>
@@ -445,7 +455,7 @@ const TaskViewer: React.FC<TaskViewerProps> = ({ tasks }) => {
               position: 'relative'
             }}>
               <div style={{ fontSize: '48px', marginBottom: '15px' }}>🔍</div>
-              <h3 style={{ color: 'var(--secondary-black)', marginBottom: '15px', fontSize: '1.5rem', fontWeight: 'bold' }}>Keine passenden Aufgaben gefunden</h3>
+              <h3 style={{ color: 'var(--secondary-black)', marginBottom: '15px', fontSize: '1.5rem', fontWeight: 'bold' }}>Keine passenden Dienste gefunden</h3>
               <p style={{ color: 'var(--text-color)', marginBottom: '20px', fontWeight: '500' }}>Bitte versuche es mit anderen Suchkriterien.</p>
               <button 
                 onClick={clearAllFilters}

@@ -1,0 +1,235 @@
+/* TypeaheadDropdown component styles */
+.typeahead-container {
+  position: relative;
+  width: 100%;
+}
+
+.typeahead-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.typeahead-input {
+  width: 100%;
+  padding: 12px 40px 12px 12px;
+  border-radius: 8px;
+  border: 2px solid var(--secondary-black);
+  background-color: var(--primary-yellow);
+  color: var(--secondary-black);
+  font-size: 16px;
+  font-family: inherit;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.typeahead-input:focus {
+  border-color: var(--text-color);
+  box-shadow: 0 0 10px var(--shadow-medium);
+}
+
+.typeahead-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: #f5f5f5;
+}
+
+.typeahead-input::placeholder {
+  color: var(--text-light);
+}
+
+.typeahead-input--open {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.typeahead-clear-btn {
+  position: absolute;
+  right: 35px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  font-size: 18px;
+  color: var(--text-light);
+  cursor: pointer;
+  padding: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.typeahead-clear-btn:hover {
+  background-color: var(--secondary-black);
+  color: var(--primary-yellow);
+}
+
+.typeahead-arrow {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-color);
+  transition: transform 0.2s ease;
+  pointer-events: none;
+}
+
+.typeahead-arrow--up {
+  transform: translateY(-50%) rotate(180deg);
+}
+
+.typeahead-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: var(--primary-yellow);
+  border: 2px solid var(--secondary-black);
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+  max-height: 250px;
+  overflow-y: auto;
+  z-index: 1000;
+  box-shadow: 0 4px 8px var(--shadow-medium);
+}
+
+.typeahead-option {
+  padding: 12px 15px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--shadow-light);
+  transition: all 0.2s ease;
+  color: var(--secondary-black);
+  background-color: var(--primary-yellow);
+}
+
+.typeahead-option:last-child {
+  border-bottom: none;
+}
+
+.typeahead-option:hover,
+.typeahead-option--highlighted {
+  background-color: var(--secondary-black);
+  color: var(--primary-yellow);
+}
+
+.typeahead-message {
+  padding: 12px 15px;
+  color: var(--text-light);
+  font-style: italic;
+  text-align: center;
+  background-color: var(--primary-yellow);
+}
+
+/* Scrollbar styling for dropdown */
+.typeahead-dropdown::-webkit-scrollbar {
+  width: 6px;
+}
+
+.typeahead-dropdown::-webkit-scrollbar-track {
+  background: var(--primary-yellow);
+}
+
+.typeahead-dropdown::-webkit-scrollbar-thumb {
+  background: var(--text-light);
+  border-radius: 3px;
+}
+
+.typeahead-dropdown::-webkit-scrollbar-thumb:hover {
+  background: var(--secondary-black);
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+  .typeahead-input {
+    font-size: 16px; /* Prevents zoom on iOS */
+    padding: 12px 40px 12px 12px;
+  }
+  
+  .typeahead-dropdown {
+    max-height: 200px;
+  }
+  
+  .typeahead-option {
+    padding: 14px 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .typeahead-clear-btn {
+    right: 32px;
+    width: 24px;
+    height: 24px;
+    font-size: 20px;
+  }
+  
+  .typeahead-arrow {
+    right: 8px;
+  }
+}
+
+/* Focus states for accessibility */
+.typeahead-option:focus {
+  outline: 2px solid var(--text-color);
+  outline-offset: -2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .typeahead-input {
+    border-width: 3px;
+  }
+  
+  .typeahead-dropdown {
+    border-width: 3px;
+  }
+  
+  .typeahead-option--highlighted {
+    outline: 2px solid currentColor;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .typeahead-input,
+  .typeahead-option,
+  .typeahead-clear-btn,
+  .typeahead-arrow {
+    transition: none;
+  }
+}
+
+/* Loading state animation */
+.typeahead-message {
+  position: relative;
+}
+
+.typeahead-dropdown[data-loading="true"] .typeahead-message::after {
+  content: '';
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--text-light);
+  border-top: 2px solid var(--secondary-black);
+  border-radius: 50%;
+  animation: typeahead-spin 1s linear infinite;
+}
+
+@keyframes typeahead-spin {
+  0% { transform: translateY(-50%) rotate(0deg); }
+  100% { transform: translateY(-50%) rotate(360deg); }
+}
+
+/* Print styles */
+@media print {
+  .typeahead-dropdown {
+    display: none;
+  }
+}
