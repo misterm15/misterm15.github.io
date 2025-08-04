@@ -160,25 +160,9 @@ body {
 
 /* Header styles */
 .header-section {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 2000;
   background: var(--secondary-black);
   color: var(--primary-yellow);
   border-bottom: 3px solid var(--primary-yellow);
-  transition: transform 0.3s ease-out, opacity 0.3s ease-out;
-  will-change: transform, opacity;
-}
-
-.header-section.header-hidden {
-  transform: translateY(-100%);
-  opacity: 0;
-  pointer-events: none;
-  visibility: hidden;
-  height: 0 !important;
-  overflow: hidden;
 }
 
 .filter-container {
@@ -314,9 +298,7 @@ body {
 
 /* Content styles */
 .content-section {
-  padding-top: 200px;
   background: var(--primary-yellow);
-  transition: padding-top 0.3s ease;
   min-height: 100vh;
 }
 
@@ -404,31 +386,6 @@ body {
   align-items: center;
   flex-wrap: wrap;
   gap: 10px;
-}
-
-/* Scroll to top button */
-#scrollTopButton {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background-color: var(--secondary-black);
-  color: var(--gold);
-  border: 3px solid var(--gold);
-  display: flex;
-  opacity: 0;
-  pointer-events: none;
-  align-items: center;
-  justify-content: center;
-  font-size: 24px;
-  cursor: pointer;
-  z-index: 9999;
-  box-shadow: 0 4px 15px var(--shadow-heavy);
-  transition: opacity 0.3s ease, transform 0.3s ease;
-  font-weight: bold;
-  transform: scale(0.95);
 }
 
 /* Footer styles */
@@ -523,10 +480,6 @@ body {
   .nav-title {
     font-size: 1.2rem;
   }
-  
-  .content-section {
-    padding-top: 250px;
-  }
 }
 
 @media (max-width: 480px) {
@@ -559,23 +512,8 @@ body {
     font-size: 1rem;
   }
   
-  #scrollTopButton {
-    width: 44px;
-    height: 44px;
-    font-size: 20px;
-  }
-  
   .kirmes-logo {
     height: 40px;
-  }
-}
-
-/* Dark mode and accessibility */
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
   }
 }
 
@@ -583,15 +521,10 @@ body {
 @media print {
   .header-section,
   .export-menu,
-  #scrollTopButton,
   .kirmes-nav,
   .kirmes-border,
   .footer {
     display: none !important;
-  }
-  
-  .content-section {
-    padding-top: 0 !important;
   }
   
   .task-card {
@@ -605,19 +538,6 @@ body {
     background: white !important;
     color: black !important;
   }
-}
-
-/* Special classes for initial load */
-body.initial-load .content-section {
-  padding-top: 200px;
-}
-
-body.manually-hidden-header .content-section {
-  padding-top: 120px;
-}
-
-body.force-content-below-header .content-section {
-  padding-top: 300px !important;
 }
 
 /* Mobile responsive */
@@ -676,32 +596,13 @@ body.force-content-below-header .content-section {
     font-size: 1.3rem;
   }
   
-  #scrollTopButton {
-    width: 44px;
-    height: 44px;
-    font-size: 20px;
-  }
-}
-
-/* Dark mode and accessibility */
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
 }
 
 /* Print styles */
 @media print {
   .header-section,
-  .export-menu,
-  #scrollTopButton {
+  .export-menu {
     display: none !important;
-  }
-  
-  .content-section {
-    padding-top: 0 !important;
   }
   
   .task-card {
@@ -713,17 +614,4 @@ body.force-content-below-header .content-section {
     background: white !important;
     color: black !important;
   }
-}
-
-/* Special classes for initial load */
-body.initial-load .content-section {
-  padding-top: 200px;
-}
-
-body.manually-hidden-header .content-section {
-  padding-top: 40px;
-}
-
-body.force-content-below-header .content-section {
-  padding-top: 450px !important;
 }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import html2pdf from 'html2pdf.js';
 import type { TaskViewerProps } from '../types';
 import { groupTasksByOriginal, sortDaysByKirmesOrder, filterTasks } from '../utils/taskUtils';
@@ -9,10 +9,7 @@ const TaskViewer: React.FC<TaskViewerProps> = ({ tasks }) => {
   const [selectedTask, setSelectedTask] = useState('');
   const [taskSearchTerm, setTaskSearchTerm] = useState('');
   const [showTaskDropdown, setShowTaskDropdown] = useState(false);
-  const [headerVisible, setHeaderVisible] = useState(true);
-  const [lastScrollY, setLastScrollY] = useState(0);
   const [isExpanded, setIsExpanded] = useState(false);
-  const [manuallyHidden] = useState(false);
 
   // Get unique days and tasks for filters
   const uniqueDays = [...new Set(tasks.map(task => task.date))].filter(Boolean);
@@ -58,108 +55,6 @@ const TaskViewer: React.FC<TaskViewerProps> = ({ tasks }) => {
     clearTaskSearch();
   };
 
-  // Smart header scroll handling
-  useEffect(() => {
-    let touchStartY = 0;
-    let touchMoveTimer: NodeJS.Timeout | null = null;
-    let scrollTimer: number | null = null;
-    let lastScrollPos = 0;
-
-    const handleTouchStart = (e: TouchEvent) => {
-      touchStartY = e.touches[0].clientY;
-    };
-
-    const handleTouchMove = (e: TouchEvent) => {
-      if (touchMoveTimer) clearTimeout(touchMoveTimer);
-      
-      const touchY = e.touches[0].clientY;
-      const diff = touchStartY - touchY;
-      
-      touchMoveTimer = setTimeout(() => {
-        if (diff < -15) {
-          // Going up - show header
-          if (manuallyHidden) return;
-          setHeaderVisible(true);
-        } else if (diff > 10) {
-          // Going down - hide header
-          if (!manuallyHidden) {
-            setHeaderVisible(false);
-          }
-        }
-        
-        touchStartY = touchY;
-      }, 10);
-    };
-
-    const handleScroll = () => {
-      if (scrollTimer) return;
-      
-      const currentPos = window.scrollY;
-      const isScrollingDown = currentPos > lastScrollPos;
-      lastScrollPos = currentPos;
-
-      if (isScrollingDown && currentPos > 30 && !manuallyHidden) {
-        const header = document.querySelector('.header-section') as HTMLElement;
-        if (header) {
-          header.style.transform = 'translateY(-100%)';
-          header.style.opacity = '0';
-        }
-      }
-
-      scrollTimer = requestAnimationFrame(() => {
-        const currentScrollY = window.scrollY;
-        const scrollDelta = Math.abs(currentScrollY - lastScrollY);
-        
-        if (currentScrollY <= 20) {
-          if (!manuallyHidden) {
-            setHeaderVisible(true);
-          }
-        } else if (currentScrollY < lastScrollY && scrollDelta > 20) {
-          // Do nothing - keep header hidden when scrolling up
-        } else if (currentScrollY > lastScrollY) {
-          if (!manuallyHidden) {
-            setHeaderVisible(false);
-          }
-        }
-        
-        setLastScrollY(currentScrollY);
-        scrollTimer = null;
-      });
-    };
-
-    const updateScrollButtonVisibility = () => {
-      const scrollButton = document.getElementById('scrollTopButton') as HTMLElement;
-      if (scrollButton) {
-        if (window.scrollY > 200) {
-          scrollButton.style.opacity = '1';
-          scrollButton.style.pointerEvents = 'auto';
-          scrollButton.style.transform = 'scale(1)';
-        } else {
-          scrollButton.style.opacity = '0';
-          scrollButton.style.pointerEvents = 'none';
-          scrollButton.style.transform = 'scale(0.95)';
-        }
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    window.addEventListener('touchstart', handleTouchStart, { passive: true });
-    window.addEventListener('touchmove', handleTouchMove, { passive: true });
-    window.addEventListener('scroll', updateScrollButtonVisibility, { passive: true });
-
-    setTimeout(updateScrollButtonVisibility, 100);
-
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('touchstart', handleTouchStart);
-      window.removeEventListener('touchmove', handleTouchMove);
-      window.removeEventListener('scroll', updateScrollButtonVisibility);
-      
-      if (touchMoveTimer) clearTimeout(touchMoveTimer);
-      if (scrollTimer) cancelAnimationFrame(scrollTimer);
-    };
-  }, [lastScrollY, isExpanded, manuallyHidden]);
-
   // Handle PDF export
   const handlePDFExport = () => {
     const element = document.querySelector('.content-section');
@@ -199,17 +94,11 @@ const TaskViewer: React.FC<TaskViewerProps> = ({ tasks }) => {
 
       {/* Smart Header with Filters */}
       <div 
-        className={`header-section ${headerVisible && !manuallyHidden ? 'sticky-visible' : 'header-hidden'}`} 
         style={{
-          transform: (headerVisible && !manuallyHidden) ? 'translateY(0)' : 'translateY(-100%)',
-          opacity: (headerVisible && !manuallyHidden) ? 1 : 0,
-          pointerEvents: (headerVisible && !manuallyHidden) ? 'auto' : 'none',
-          transition: 'transform 0.3s ease-out, opacity 0.3s ease-out',
-          position: 'fixed',
           top: '80px',
           left: 0,
           width: '100%',
-          zIndex: 2000,
+          background: 'var(--secondary-black)',
         }}>
         <div className="filter-container">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
@@ -247,7 +136,6 @@ const TaskViewer: React.FC<TaskViewerProps> = ({ tasks }) => {
               marginBottom: '15px'
             }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '14px', color: 'var(--secondary-black)', fontWeight: 'bold' }}>
-                <p>📱 <strong>Mobil:</strong> Wische nach unten zum Scrollen, nach oben um die Suche wieder anzuzeigen</p>
                 <p>🔍 <strong>Suche:</strong> Gib einen Namen ein, um alle Aufgaben einer Person zu finden</p>
                 <p>📅 <strong>Filter:</strong> Wähle einen Tag oder eine Aufgabe aus den Dropdown-Menüs</p>
                 <p>📄 <strong>Export:</strong> Teile Ergebnisse per WhatsApp oder speichere als PDF</p>
@@ -600,19 +488,6 @@ const TaskViewer: React.FC<TaskViewerProps> = ({ tasks }) => {
           </div>
         </footer>
       </div>
-      
-      {/* Scroll to top button */}
-      <button 
-        id="scrollTopButton"
-        onClick={() => {
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-          setHeaderVisible(true);
-          setIsExpanded(true);
-        }}
-        title="Nach oben"
-      >
-        ↑
-      </button>
     </div>
   );
 };
