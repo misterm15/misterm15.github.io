@@ -1,0 +1,68 @@
+/* Global styles for the Vite React app */
+:root {
+  /* Color variables */
+  --primary-yellow: #FEE05E;
+  --secondary-black: #000;
+  --text-color: #333;
+  --text-light: #666;
+  --white: #fff;
+  --red: #ff0000;
+  
+  /* Shadow colors */
+  --shadow-light: rgba(0, 0, 0, 0.1);
+  --shadow-medium: rgba(0, 0, 0, 0.2);
+  --shadow-dark: rgba(0, 0, 0, 0.3);
+  --shadow-heavy: rgba(0, 0, 0, 0.5);
+  
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light;
+  color: var(--text-color);
+  background-color: var(--primary-yellow);
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
+  background: var(--primary-yellow);
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Button reset */
+button {
+  font-family: inherit;
+}
+
+/* Remove default styles from inputs and selects */
+input, select, textarea {
+  font-family: inherit;
+}
