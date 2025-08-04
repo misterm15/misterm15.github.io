@@ -3,7 +3,6 @@
  * Creates a floating search button that doesn't depend on the existing structure
  * Version 2.0 - With improved login detection and precise positioning
  */
-console.log('Independent search button loader - v2.0');
 
 // Remove any existing search button immediately - needed in case this script runs multiple times
 (function() {
@@ -70,15 +69,11 @@ style.textContent = `
 document.head.appendChild(style);
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Creating independent search button - checking if login page');
     
     // Use our improved login detection function
     if (isLoginPage()) {
-        console.log('Login screen detected, not showing search button');
         return; // Exit early, don't create button on login screen
     }
-    
-    console.log('Not a login page, creating search button');
     
     // Create floating search button
     function createFloatingSearchButton() {
@@ -292,7 +287,6 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Add to document
         document.body.appendChild(floatingButton);
-        console.log('Floating search button created');
         
         // Initially hide filters after a short delay
         setTimeout(() => {
@@ -314,8 +308,6 @@ document.addEventListener('DOMContentLoaded', function() {
             if (instructions) {
                 instructions.style.display = 'none';
             }
-            
-            console.log('Initial filter hiding applied');
         }, 500);
     }
     

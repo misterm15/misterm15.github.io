@@ -95,19 +95,6 @@
     }
 }
 
-/* Custom styles for the debug indicator */
-.header-debug-indicator {
-    position: fixed;
-    bottom: 10px;
-    right: 10px;
-    padding: 8px;
-    background: rgba(0,0,0,0.7);
-    color: white;
-    font-size: 12px;
-    border-radius: 4px;
-    z-index: 9999;
-}
-
 /* Media query for mobile devices */
 @media (max-width: 768px) {
     .header-section {

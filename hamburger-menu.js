@@ -5,11 +5,9 @@
  */
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Hamburger menu initialization...');
     
     // Check if we're on a login page
     if (isLoginPage()) {
-        console.log('Login page detected, not initializing hamburger menu');
         return;
     }
     

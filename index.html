@@ -1214,7 +1214,6 @@
                 const item = localStorage.getItem(key);
                 return item ? JSON.parse(item) : defaultValue;
             } catch (error) {
-                console.error('Error loading from storage:', error);
                 return defaultValue;
             }
         };
@@ -1227,9 +1226,6 @@
                     skipEmptyLines: true,
                     delimiter: ';', // German CSV uses semicolon
                     complete: function(results) {
-                        if (results.errors.length > 0) {
-                            console.error('CSV parsing errors:', results.errors);
-                        }
                         
                         // Transform CSV data to our format - MAINTAIN ORDER
                         const tasks = [];
@@ -1274,13 +1270,6 @@
                         const validTasks = tasks
                             .filter(task => task.task && task.task.length > 0) // Only filter out tasks without task names
                             .sort((a, b) => a.originalOrder - b.originalOrder);
-                        
-                        // Debug stats for task count
-                        const tasksByDay = {};
-                        validTasks.forEach(task => {
-                            if (!tasksByDay[task.date]) tasksByDay[task.date] = 0;
-                            tasksByDay[task.date]++;
-                        });
                         
                         const emptyTasks = validTasks.filter(task => !task.name || task.name.length === 0);
                         
@@ -1379,7 +1368,7 @@
             };
             
             // Helper function to force recalculate content padding
-            const forceUpdateContentPadding = (withDebug = false) => {
+            const forceUpdateContentPadding = () => {
                 const header = document.querySelector('.header-section');
                 const content = document.querySelector('.content-section');
                 const exportMenu = document.querySelector('.export-menu');
@@ -1424,31 +1413,6 @@
                         // Normal position when header is visible
                         exportMenu.style.top = '390px'; // Increased to match new spacing
                     }
-                    
-                    if (withDebug) {
-                        // Create and show a visual indicator for debugging
-                        const debugIndicator = document.createElement('div');
-                        debugIndicator.id = 'padding-debug-helper';
-                        debugIndicator.style.position = 'fixed';
-                        debugIndicator.style.top = '120px';
-                        debugIndicator.style.right = '20px';
-                        debugIndicator.style.backgroundColor = 'rgba(0, 255, 0, 0.7)';
-                        debugIndicator.style.padding = '5px 10px';
-                        debugIndicator.style.borderRadius = '4px';
-                        debugIndicator.style.zIndex = '9999';
-                        debugIndicator.style.fontSize = '12px';
-                        debugIndicator.style.fontWeight = 'bold';
-                        debugIndicator.style.color = '#000';
-                        debugIndicator.textContent = `Helper: ${headerHeight + 30}px`;
-                        document.body.appendChild(debugIndicator);
-                        
-                        // Remove debug indicator after 3 seconds
-                        setTimeout(() => {
-                            if (debugIndicator && debugIndicator.parentNode) {
-                                debugIndicator.parentNode.removeChild(debugIndicator);
-                            }
-                        }, 3000);
-                    }
                 }
             };
             
@@ -1456,20 +1420,20 @@
                 setTaskSearchTerm(task);
                 setSelectedTask(task);
                 setShowTaskDropdown(false);
-                // Force update padding after selection changes with debug info
-                setTimeout(() => forceUpdateContentPadding(true), 100);
+                // Force update padding after selection changes
+                setTimeout(() => forceUpdateContentPadding(), 100);
                 // Second check with a longer delay
-                setTimeout(() => forceUpdateContentPadding(false), 500);
+                setTimeout(() => forceUpdateContentPadding(), 500);
             };
             
             const clearTaskSearch = () => {
                 setTaskSearchTerm('');
                 setSelectedTask('');
                 setShowTaskDropdown(false);
-                // Force update padding after clearing with debug info
-                setTimeout(() => forceUpdateContentPadding(true), 100);
+                // Force update padding after clearing
+                setTimeout(() => forceUpdateContentPadding(), 100);
                 // Second check with a longer delay
-                setTimeout(() => forceUpdateContentPadding(false), 500);
+                setTimeout(() => forceUpdateContentPadding(), 500);
             };
             
             // Group tasks by their original order (chronological)
@@ -1546,20 +1510,12 @@
             // User can manually toggle header visibility
             const [manuallyHidden, setManuallyHidden] = useState(false);
             
-            // Add console log to show we're initializing our component
-            console.log("TaskViewer component initializing - React version");
-            
             // Handle scroll events for smart header
             useEffect(() => {
-                console.log("Setting up scroll handlers - React version");
                 
-                // Check for presence of required elements and log results
+                // Check for presence of required elements
                 const header = document.querySelector('.header-section');
                 const content = document.querySelector('.content-section');
-                console.log("Elements check:", { 
-                    header: header ? "Found" : "Missing",
-                    content: content ? "Found" : "Missing"
-                });
                 
                 // Variable to track touch direction for mobile
                 let touchStartY = 0;
@@ -1594,7 +1550,6 @@
                         else if (diff > 10) {  // More sensitive detection
                             // Hide the header with any downward swipe if not already hidden
                             if (!manuallyHidden && window.scrollY > 30) {
-                                console.log('Hiding header on touch down: ', diff);
                                 toggleHeaderManually(); // Use same function as button press, for consistency
                             } else if (manuallyHidden) {
                                 // If already manually hidden, ensure instructions stay collapsed
@@ -1636,16 +1591,6 @@
                         // Calculate how much we've scrolled since last check
                         const scrollDelta = Math.abs(currentScrollY - lastScrollY);
                         
-                        // Only log every 10 scroll events to avoid flooding the console
-                        if (Math.random() < 0.1) {
-                            console.log('React Header: Scroll event', { 
-                                currentY: Math.round(currentScrollY), 
-                                delta: Math.round(scrollDelta),
-                                direction: currentScrollY > lastScrollY ? 'DOWN' : 'UP',
-                                headerState: manuallyHidden ? 'HIDDEN' : 'VISIBLE'
-                            });
-                        }
-                        
                         // Always show header at the very top of the page
                         if (currentScrollY <= 20) {
                             // If the header was manually hidden by scrolling down, show it again when at top
@@ -1668,7 +1613,6 @@
                         else if (currentScrollY > lastScrollY) {
                             // Always hide on scroll down at any distance
                             if (!manuallyHidden) {
-                                console.log('IMPORTANT: Hiding header on scroll down:', currentScrollY);
                                 
                                 // Set state first
                                 setHeaderVisible(false);
@@ -1961,7 +1905,6 @@
             
             // Function to toggle header visibility manually with improved positioning updates
             const toggleHeaderManually = () => {
-                console.log("Toggle header button clicked!");
                 
                 const newHiddenState = !manuallyHidden;
                 setManuallyHidden(newHiddenState);
@@ -2012,22 +1955,6 @@
                     // First make it visible
                     setHeaderVisible(true);
                     
-                    // Create and show a visual indicator for debugging (shows what's happening with padding)
-                    const debugIndicator = document.createElement('div');
-                    debugIndicator.id = 'padding-debug';
-                    debugIndicator.style.position = 'fixed';
-                    debugIndicator.style.top = '80px';
-                    debugIndicator.style.right = '20px';
-                    debugIndicator.style.backgroundColor = 'rgba(255, 0, 0, 0.7)'; // Red for visibility
-                    debugIndicator.style.padding = '5px 10px';
-                    debugIndicator.style.borderRadius = '4px';
-                    debugIndicator.style.zIndex = '9999';
-                    debugIndicator.style.fontSize = '12px';
-                    debugIndicator.style.fontWeight = 'bold';
-                    debugIndicator.style.color = '#fff';
-                    debugIndicator.textContent = 'Showing Header...';
-                    document.body.appendChild(debugIndicator);
-                    
                     // Completely reset and show the header with a new approach
                     document.body.style.cursor = 'wait'; // Show loading cursor during recalculation
                     
@@ -2055,17 +1982,10 @@
                             // Force browser to recalculate layout completely
                             void document.documentElement.offsetHeight;
                             
-                            // Log what we're measuring
-                            console.log('Initial header height:', header.offsetHeight);
-                            
                             // Set initial high padding to ensure content is well below header
                             // Use a fixed high value first to ensure nothing overlaps
                             const initialSafePadding = 450; // Very high value to start with
                             content.style.paddingTop = `${initialSafePadding}px`;
-                            
-                            if (debugIndicator) {
-                                debugIndicator.textContent = `Safe initial: ${initialSafePadding}px`;
-                            }
                             
                             // Step 2: After initial timeout, measure header properly and adjust
                             setTimeout(() => {
@@ -2078,13 +1998,6 @@
                                 
                                 // Apply final padding
                                 content.style.paddingTop = `${finalPadding}px`;
-                                
-                                console.log('Measured header height:', measuredHeight, 'Final padding:', finalPadding);
-                                
-                                if (debugIndicator) {
-                                    debugIndicator.textContent = `Measured: ${measuredHeight}px → Padding: ${finalPadding}px`;
-                                    debugIndicator.style.backgroundColor = 'rgba(0, 128, 0, 0.7)'; // Green for success
-                                }
                                 
                                 // Step 3: Apply a CSS class that forces content below header
                                 // This is a backup mechanism in case JavaScript calculations fail
@@ -2103,10 +2016,6 @@
                                         // If there's a significant difference, update again
                                         const absoluteFinalPadding = finalHeight + 50; // Increased buffer for more space
                                         content.style.paddingTop = `${absoluteFinalPadding}px`;
-                                        
-                                        if (debugIndicator) {
-                                            debugIndicator.textContent = `Final: ${finalHeight}px → Padding: ${absoluteFinalPadding}px`;
-                                        }
                                     }
                                     
                                     // Return cursor to normal
@@ -2114,13 +2023,6 @@
                                     
                                     // Update export menu position
                                     updateExportMenuPosition();
-                                    
-                                    // Remove debug indicator after 5 seconds
-                                    setTimeout(() => {
-                                        if (debugIndicator && debugIndicator.parentNode) {
-                                            debugIndicator.parentNode.removeChild(debugIndicator);
-                                        }
-                                    }, 5000);
                                 }, 300);
                             }, 300);
                         }
@@ -2129,21 +2031,6 @@
                     // If hiding the header, immediately adjust padding but with a smooth transition
                     const content = document.querySelector('.content-section');
                     if (content) {
-                        // Create and show a visual indicator for debugging
-                        const debugIndicator = document.createElement('div');
-                        debugIndicator.id = 'padding-debug';
-                        debugIndicator.style.position = 'fixed';
-                        debugIndicator.style.top = '80px';
-                        debugIndicator.style.right = '20px';
-                        debugIndicator.style.backgroundColor = 'rgba(0, 0, 255, 0.7)';
-                        debugIndicator.style.padding = '5px 10px';
-                        debugIndicator.style.borderRadius = '4px';
-                        debugIndicator.style.zIndex = '9999';
-                        debugIndicator.style.fontSize = '12px';
-                        debugIndicator.style.fontWeight = 'bold';
-                        debugIndicator.style.color = '#fff';
-                        debugIndicator.textContent = 'Hiding Header...';
-                        document.body.appendChild(debugIndicator);
                         
                         // First ensure smooth transition
                         content.style.transition = 'padding-top 0.3s ease';
@@ -2155,18 +2042,6 @@
                             
                             // Set minimal padding for just the toggle button
                             content.style.paddingTop = '40px';
-                            
-                            if (debugIndicator) {
-                                debugIndicator.textContent = 'Header hidden: 40px padding';
-                                debugIndicator.style.backgroundColor = 'rgba(0, 0, 255, 0.5)';
-                            }
-                            
-                            // Remove debug indicator after 5 seconds
-                            setTimeout(() => {
-                                if (debugIndicator && debugIndicator.parentNode) {
-                                    debugIndicator.parentNode.removeChild(debugIndicator);
-                                }
-                            }, 5000);
                         }, 50);
                     }
                 }
@@ -2179,12 +2054,10 @@
                         id="header-toggle-button"
                         className="header-toggle-btn"
                         onClick={() => {
-                            console.log("Button clicked directly");
                             toggleHeaderManually();
                         }}
                         onDoubleClick={() => {
                             // Force extreme action on double-click if something is stuck
-                            console.log("FORCE TOGGLE via double-click");
                             const header = document.querySelector('.header-section');
                             const btn = document.getElementById('header-toggle-button');
                             const content = document.querySelector('.content-section');
