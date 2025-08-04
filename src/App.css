@@ -341,11 +341,6 @@ body {
   clip-path: polygon(0% 100%, 10% 0%, 20% 100%, 30% 0%, 40% 100%, 50% 0%, 60% 100%, 70% 0%, 80% 100%, 90% 0%, 100% 100%);
 }
 
-.task-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 30px var(--shadow-medium);
-}
-
 .task-header {
   display: flex;
   justify-content: space-between;
