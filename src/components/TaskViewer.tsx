@@ -10,7 +10,6 @@ const TaskViewer: React.FC<TaskViewerProps> = ({ tasks }) => {
   const [selectedDay, setSelectedDay] = useState('');
   const [selectedTask, setSelectedTask] = useState('');
   const [taskSearchTerm, setTaskSearchTerm] = useState('');
-  const [showTaskDropdown, setShowTaskDropdown] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
 
   // Get unique days and tasks for filters
@@ -31,13 +30,16 @@ const TaskViewer: React.FC<TaskViewerProps> = ({ tasks }) => {
     }));
   }, [tasks]);
 
+  // Get unique tasks for typeahead
+  const taskOptions = useMemo(() => {
+    return uniqueTasks.map(task => ({
+      value: task,
+      label: task
+    }));
+  }, [uniqueTasks]);
+
   // Sort days in Kirmes order
   const sortedDays = sortDaysByKirmesOrder(uniqueDays);
-
-  // Filter tasks for dropdown based on search term
-  const filteredDropdownTasks = uniqueTasks.filter(task => 
-    task.toLowerCase().includes(taskSearchTerm.toLowerCase())
-  );
 
   // Group tasks by their original order (chronological)
   const groupedTasks = groupTasksByOriginal(tasks);
@@ -45,31 +47,32 @@ const TaskViewer: React.FC<TaskViewerProps> = ({ tasks }) => {
   // Filter tasks based on all criteria
   const filteredTasks = filterTasks(groupedTasks, searchTerm, selectedDay, selectedTask, taskSearchTerm);
 
-  // Handle task input changes
-  const handleTaskInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setTaskSearchTerm(value);
-    setSelectedTask(''); // Clear selection when typing
-    setShowTaskDropdown(value.length > 0); // Show dropdown when typing
+  // Handle task selection from typeahead
+  const handleTaskSelection = (selectedOption: TypeaheadOption | null) => {
+    if (selectedOption) {
+      setTaskSearchTerm(selectedOption.value);
+      setSelectedTask(selectedOption.value);
+    } else {
+      setTaskSearchTerm('');
+      setSelectedTask('');
+    }
   };
 
-  const handleTaskSelect = (task: string) => {
-    setTaskSearchTerm(task);
-    setSelectedTask(task);
-    setShowTaskDropdown(false);
-  };
-
-  const clearTaskSearch = () => {
-    setTaskSearchTerm('');
-    setSelectedTask('');
-    setShowTaskDropdown(false);
+  // Handle task input change from typeahead
+  const handleTaskInputChange = (inputValue: string) => {
+    setTaskSearchTerm(inputValue);
+    // Only clear the selected task if input is completely empty
+    if (inputValue.trim() === '') {
+      setSelectedTask('');
+    }
   };
 
   const clearAllFilters = () => {
     setSearchTerm('');
     setNameInputValue('');
     setSelectedDay('');
-    clearTaskSearch();
+    setTaskSearchTerm('');
+    setSelectedTask('');
   };
 
   // Handle name selection from typeahead
@@ -208,88 +211,18 @@ const TaskViewer: React.FC<TaskViewerProps> = ({ tasks }) => {
               ))}
             </select>
             
-            {/* Task Search Combo */}
-            <div className="task-search-combo" style={{ flex: 2, position: 'relative', minWidth: '200px' }}>
-              <input
-                type="text"
+            {/* Task Search with TypeaheadDropdown */}
+            <div style={{ flex: 2, minWidth: '200px' }}>
+              <TypeaheadDropdown
+                options={taskOptions}
                 value={taskSearchTerm}
-                onChange={handleTaskInputChange}
-                onFocus={() => setShowTaskDropdown(true)}
                 placeholder="Dienste suchen..."
-                className="task-search-combo input"
+                onChange={handleTaskSelection}
+                onInputChange={handleTaskInputChange}
+                allowCustomValue={true}
+                clearable={true}
+                className=""
               />
-              
-              {/* Dropdown arrow */}
-              <button
-                onClick={() => setShowTaskDropdown(!showTaskDropdown)}
-                style={{
-                  position: 'absolute',
-                  right: '40px',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  background: 'none',
-                  border: 'none',
-                  color: 'var(--secondary-black)',
-                  cursor: 'pointer',
-                  fontWeight: 'bold'
-                }}
-                title="Dienste anzeigen"
-              >
-                ▼
-              </button>
-              
-              {/* Clear button */}
-              {taskSearchTerm && (
-                <button
-                  onClick={clearTaskSearch}
-                  style={{
-                    position: 'absolute',
-                    right: '8px',
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    background: 'none',
-                    border: 'none',
-                    color: 'var(--secondary-black)',
-                    cursor: 'pointer',
-                    fontWeight: 'bold'
-                  }}
-                >
-                  ✕
-                </button>
-              )}
-              
-              {/* Dropdown list */}
-              {showTaskDropdown && (
-                <div style={{
-                  position: 'absolute',
-                  top: '100%',
-                  left: 0,
-                  right: 0,
-                  backgroundColor: 'var(--primary-yellow)',
-                  border: '2px solid var(--secondary-black)',
-                  borderRadius: '6px',
-                  maxHeight: '200px',
-                  zIndex: 1000
-                }}>
-                  {filteredDropdownTasks.map(task => (
-                    <div
-                      key={task}
-                      onClick={() => handleTaskSelect(task)}
-                      style={{
-                        padding: '10px',
-                        cursor: 'pointer',
-                        borderBottom: '1px solid var(--secondary-black)',
-                        color: 'var(--secondary-black)',
-                        fontWeight: 'bold'
-                      }}
-                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--secondary-black)'}
-                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                    >
-                      {task}
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
             
             {/* Clear Filters */}
