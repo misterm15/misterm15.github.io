@@ -2777,8 +2777,14 @@
             const [tasks, setTasks] = useState([]);
             const [error, setError] = useState('');
             
-            // Load data from CSV file on component mount
+            // Check localStorage for existing login on component mount
             useEffect(() => {
+                // Check if user is already logged in
+                const loginStatus = loadFromStorage(StorageKeys.LOGIN_STATUS, false);
+                if (loginStatus) {
+                    setIsLoggedIn(true);
+                }
+                
                 // Clear any existing cache first
                 if ('caches' in window) {
                     caches.keys().then(function(names) {
@@ -2817,9 +2823,8 @@
             };
             
             const handleLogin = () => {
-                // Complete cache clearing
-                localStorage.clear();
-                sessionStorage.clear();
+                // Save login status to localStorage
+                localStorage.setItem(StorageKeys.LOGIN_STATUS, JSON.stringify(true));
                 
                 // Clear any cached fetch requests
                 if ('caches' in window) {
@@ -2828,7 +2833,6 @@
                     });
                 }
                 
-
                 setIsLoggedIn(true);
                 setError('');
                 
@@ -2848,7 +2852,7 @@
             
             return (
                 <TaskViewer 
-                    tasks={tasks} 
+                    tasks={tasks}
                 />
             );
         };
