@@ -74,7 +74,7 @@ const TaskViewer: React.FC<TaskViewerProps> = ({ tasks }) => {
   // Handle WhatsApp sharing
   const handleWhatsAppShare = () => {
     const tasksText = filteredTasks.map(task => 
-      `📅 ${task.date} um ${task.time}\n📍 ${task.location}\n🔧 ${task.task}\n👥 ${task.persons.join(', ') || 'Nicht zugewiesen'}\n`
+      `📅 ${task.date} um ${task.time}\n🔧 ${task.task}\n👥 ${task.persons.join(', ') || 'Nicht zugewiesen'}\n`
     ).join('\n');
 
     const message = `Kirmes Dienstplan ${searchTerm ? `für ${searchTerm}` : ''}\n\n${tasksText}`;
@@ -136,8 +136,8 @@ const TaskViewer: React.FC<TaskViewerProps> = ({ tasks }) => {
               marginBottom: '15px'
             }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '14px', color: 'var(--secondary-black)', fontWeight: 'bold' }}>
-                <p>🔍 <strong>Suche:</strong> Gib einen Namen ein, um alle Aufgaben einer Person zu finden</p>
-                <p>📅 <strong>Filter:</strong> Wähle einen Tag oder eine Aufgabe aus den Dropdown-Menüs</p>
+                <p>🔍 <strong>Suche:</strong> Gib einen Namen ein, um alle Dienste einer Person zu finden</p>
+                <p>📅 <strong>Filter:</strong> Wähle einen Tag oder eine Dienste aus den Dropdown-Menüs</p>
                 <p>📄 <strong>Export:</strong> Teile Ergebnisse per WhatsApp oder speichere als PDF</p>
               </div>
             </div>
@@ -205,7 +205,7 @@ const TaskViewer: React.FC<TaskViewerProps> = ({ tasks }) => {
                 value={taskSearchTerm}
                 onChange={handleTaskInputChange}
                 onFocus={() => setShowTaskDropdown(true)}
-                placeholder="Aufgabe suchen..."
+                placeholder="Dienste suchen..."
                 className="task-search-combo input"
               />
               
@@ -223,7 +223,7 @@ const TaskViewer: React.FC<TaskViewerProps> = ({ tasks }) => {
                   cursor: 'pointer',
                   fontWeight: 'bold'
                 }}
-                title="Aufgaben anzeigen"
+                title="Dienste anzeigen"
               >
                 ▼
               </button>
@@ -259,7 +259,6 @@ const TaskViewer: React.FC<TaskViewerProps> = ({ tasks }) => {
                   border: '2px solid var(--secondary-black)',
                   borderRadius: '6px',
                   maxHeight: '200px',
-                  overflowY: 'auto',
                   zIndex: 1000
                 }}>
                   {filteredDropdownTasks.map(task => (
@@ -363,7 +362,6 @@ const TaskViewer: React.FC<TaskViewerProps> = ({ tasks }) => {
                       margin: 0,
                       fontWeight: '500'
                     }}>
-                      📍 {task.location}
                     </p>
                   </div>
                   

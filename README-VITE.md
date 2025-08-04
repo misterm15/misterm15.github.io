@@ -91,7 +91,7 @@ The application expects a CSV file with German column headers:
 - `Datum` (Date) - Day of the week (Freitag, Samstag, etc.)
 - `Zeit` (Time) - Time in HH:MM format
 - `Ort` (Location) - Location name
-- `Aufgabe` (Task) - Task description
+- `Dienst` (Task) - Task description
 - `Name` (Name) - Assigned person name
 
 Example:

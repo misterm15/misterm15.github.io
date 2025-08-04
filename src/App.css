@@ -10,7 +10,6 @@ body {
   background: var(--primary-yellow);
   color: var(--text-color);
   min-height: 100vh;
-  overflow-x: hidden;
 }
 
 /* Kirmes-inspired decorative elements */
