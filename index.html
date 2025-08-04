@@ -352,8 +352,8 @@
         
         /* Style to apply on initial page load to prevent overlap before JS runs */
         .initial-load .content-section {
-            padding-top: 320px !important; /* Reduced padding for better initial view of content */
-            margin-top: 20px !important; /* Reduced margin during initial load */
+            padding-top: 320px !important; /* Increased initial padding to prevent overlap */
+            margin-top: 10px !important; /* Small margin during initial load */
             transition: padding-top 0.5s ease-in-out, margin-top 0.5s ease-in-out; /* Faster transition for better user experience */
             position: relative;
             z-index: 1000; /* Below header but above other content */
@@ -389,11 +389,12 @@
             flex: 1;
             overflow-y: auto;
             padding: 20px;
+            padding-top: 300px; /* Increased initial safe padding - will be adjusted by JavaScript */
             margin-top: 0; /* Ensure no extra margin */
             position: relative;
             z-index: 1; /* Ensure content stays BELOW header */
             /* Padding-top will be set dynamically by JavaScript */
-            transition: padding-top 0.5s ease; /* Longer transition for smoother adjustment */
+            transition: padding-top 0.3s ease; /* Smooth transitions for padding changes */
             will-change: padding-top; /* Optimize for animation */
             box-sizing: border-box; /* Include padding in height calculation */
         }
@@ -1192,7 +1193,7 @@
         }
     </style>
     <!-- Smart header styles -->
-    <link rel="stylesheet" href="smart-header.css">
+    <!-- Removed external smart-header.css - all styles now inline in React component -->
 </head>
 <body>
     <!-- Modern clean background -->
@@ -1343,7 +1344,9 @@
         };
         
         // Task Viewer Component - Modern Layout with Filters
-        const TaskViewer = ({ tasks }) => {
+        const TaskViewer = React.memo(({ tasks }) => {
+            // Add debug log to track when component actually re-renders vs re-mounts
+            console.log("TaskViewer RENDER (not re-mount) - tasks count:", tasks.length);
             const [searchTerm, setSearchTerm] = useState('');
             const [selectedDay, setSelectedDay] = useState('');
             const [selectedTask, setSelectedTask] = useState('');
@@ -1407,7 +1410,21 @@
                     
                     // Get accurate height
                     const headerHeight = header.offsetHeight;
-                    content.style.paddingTop = `${headerHeight + 50}px`; // Increased buffer for more space
+                    
+                    // NEW: Calculate exact position where tasks should start
+                    let idealTaskStartPosition = headerHeight;
+                    
+                    // Add buffer for export menu if it exists and is visible
+                    if (exportMenu && window.getComputedStyle(exportMenu).display !== 'none') {
+                        const exportMenuHeight = exportMenu.offsetHeight || 50;
+                        idealTaskStartPosition += exportMenuHeight + 20; // 20px margin
+                    }
+                    
+                    // Calculate optimal padding with minimal buffer
+                    const optimalBuffer = 20; // Much smaller buffer
+                    const finalPadding = idealTaskStartPosition + optimalBuffer;
+                    
+                    content.style.paddingTop = `${finalPadding}px`;
                     
                     // Restore original properties if needed
                     if (manuallyHidden) {
@@ -1421,33 +1438,24 @@
                             exportMenu.style.top = '50px';
                         }
                     } else if (exportMenu) {
-                        // Normal position when header is visible
-                        exportMenu.style.top = '390px'; // Increased to match new spacing
+                        // Normal position when header is visible - use dynamic calculation
+                        const dynamicTop = headerHeight + 20; // Header height + small buffer
+                        exportMenu.style.top = `${dynamicTop}px`;
                     }
                     
                     if (withDebug) {
-                        // Create and show a visual indicator for debugging
-                        const debugIndicator = document.createElement('div');
-                        debugIndicator.id = 'padding-debug-helper';
-                        debugIndicator.style.position = 'fixed';
-                        debugIndicator.style.top = '120px';
-                        debugIndicator.style.right = '20px';
-                        debugIndicator.style.backgroundColor = 'rgba(0, 255, 0, 0.7)';
-                        debugIndicator.style.padding = '5px 10px';
-                        debugIndicator.style.borderRadius = '4px';
-                        debugIndicator.style.zIndex = '9999';
-                        debugIndicator.style.fontSize = '12px';
-                        debugIndicator.style.fontWeight = 'bold';
-                        debugIndicator.style.color = '#000';
-                        debugIndicator.textContent = `Helper: ${headerHeight + 30}px`;
-                        document.body.appendChild(debugIndicator);
-                        
-                        // Remove debug indicator after 3 seconds
-                        setTimeout(() => {
-                            if (debugIndicator && debugIndicator.parentNode) {
-                                debugIndicator.parentNode.removeChild(debugIndicator);
-                            }
-                        }, 3000);
+                        // Reduce console spam - only log on significant changes
+                        const significantChange = Math.abs(headerHeight - (window.lastLoggedHeight || 0)) > 10;
+                        if (significantChange) {
+                            console.log('🔧 Force update content padding:', {
+                                headerHeight: headerHeight,
+                                idealTaskStart: idealTaskStartPosition,
+                                finalPadding: finalPadding,
+                                manuallyHidden: manuallyHidden,
+                                gapReduction: `${80 - optimalBuffer}px saved`
+                            });
+                            window.lastLoggedHeight = headerHeight;
+                        }
                     }
                 }
             };
@@ -1504,6 +1512,7 @@
                 
                 const body = document.body;
                 const isInitialLoad = body.classList.contains('initial-load');
+                const header = document.querySelector('.header-section');
                 
                 if (manuallyHidden) {
                     exportMenu.style.top = '50px';
@@ -1514,9 +1523,22 @@
                     exportMenu.style.position = 'relative';
                     exportMenu.style.marginTop = '10px';
                 } else {
-                    // Normal state
-                    exportMenu.style.top = '390px'; // Increased to match new spacing
-                    exportMenu.style.position = 'sticky';
+                    // Normal state - calculate dynamically based on actual header height
+                    if (header) {
+                        const headerHeight = header.offsetHeight || 194; // Fallback
+                        const dynamicTop = headerHeight + 20; // Header height + small buffer
+                        exportMenu.style.top = `${dynamicTop}px`;
+                        exportMenu.style.position = 'sticky';
+                        
+                        console.log('📊 Export menu positioned dynamically:', {
+                            headerHeight: headerHeight,
+                            exportMenuTop: dynamicTop
+                        });
+                    } else {
+                        // Fallback to static positioning
+                        exportMenu.style.top = '220px'; // Optimized fallback
+                        exportMenu.style.position = 'sticky';
+                    }
                 }
             };
             
@@ -1546,203 +1568,270 @@
             // User can manually toggle header visibility
             const [manuallyHidden, setManuallyHidden] = useState(false);
             
-            // Add console log to show we're initializing our component
-            console.log("TaskViewer component initializing - React version");
-            
             // Handle scroll events for smart header
             useEffect(() => {
                 console.log("Setting up scroll handlers - React version");
                 
                 // Check for presence of required elements and log results
-                const header = document.querySelector('.header-section');
-                const content = document.querySelector('.content-section');
+                const headerElement = document.querySelector('.header-section');
+                const contentElement = document.querySelector('.content-section');
                 console.log("Elements check:", { 
-                    header: header ? "Found" : "Missing",
-                    content: content ? "Found" : "Missing"
+                    header: headerElement ? "Found" : "Missing",
+                    content: contentElement ? "Found" : "Missing"
                 });
                 
                 // Variable to track touch direction for mobile
-                let touchStartY = 0;
+                // Enhanced scroll detection system for container-based scrolling
+                let lastScrollPosition = 0;
+                let scrollDirection = 'none';
+                let scrollTimer = null;
+                let isScrolling = false;
+                let currentVisibleTaskIndex = 0;
+                let totalTasks = filteredTasks.length;
+                let isInitialMount = true; // Flag to prevent auto-hide during initial mount
                 
-                // Handle touch start for better mobile scroll detection
+                // Minimum scroll distance to trigger header hide/show
+                const SCROLL_THRESHOLD = 100;
+                const SCROLL_TOP_THRESHOLD = 50;
+                
+                // Get the actual scroll container (content-section)
+                const getScrollContainer = () => {
+                    return document.querySelector('.content-section');
+                };
+                
+                // Calculate which task is currently visible at the top of the viewport
+                const calculateVisibleTaskIndex = (scrollContainer) => {
+                    if (!scrollContainer) return 0;
+                    
+                    const taskCards = scrollContainer.querySelectorAll('.task-card');
+                    const containerRect = scrollContainer.getBoundingClientRect();
+                    const scrollTop = scrollContainer.scrollTop;
+                    
+                    // Find the first task that's visible in the viewport
+                    for (let i = 0; i < taskCards.length; i++) {
+                        const taskRect = taskCards[i].getBoundingClientRect();
+                        const relativeTop = taskRect.top - containerRect.top + scrollTop;
+                        
+                        if (relativeTop >= scrollTop - 50) { // 50px buffer
+                            return i;
+                        }
+                    }
+                    
+                    return Math.max(0, taskCards.length - 1); // Default to last task if at bottom
+                };
+                
+                // Enhanced scroll handler that works with the content container
+                const handleScroll = (event) => {
+                    const scrollContainer = event?.target || getScrollContainer();
+                    if (!scrollContainer || scrollContainer.className !== 'content-section') {
+                        return; // Only handle scroll events from the content section
+                    }
+                    
+                    if (scrollTimer) {
+                        clearTimeout(scrollTimer);
+                    }
+                    
+                    isScrolling = true;
+                    
+                    scrollTimer = setTimeout(() => {
+                        const currentScrollY = scrollContainer.scrollTop;
+                        const scrollDelta = currentScrollY - lastScrollPosition;
+                        
+                        // Determine scroll direction with threshold to avoid micro-movements
+                        if (Math.abs(scrollDelta) > 5) {
+                            if (scrollDelta > 0) {
+                                scrollDirection = 'down';
+                            } else {
+                                scrollDirection = 'up';
+                            }
+                        }
+                        
+                        // Calculate current visible task
+                        const newVisibleTaskIndex = calculateVisibleTaskIndex(scrollContainer);
+                        const taskIndexChanged = newVisibleTaskIndex !== currentVisibleTaskIndex;
+                        currentVisibleTaskIndex = newVisibleTaskIndex;
+                        
+                        // Calculate scroll percentage
+                        const maxScroll = scrollContainer.scrollHeight - scrollContainer.clientHeight;
+                        const scrollPercentage = maxScroll > 0 ? (currentScrollY / maxScroll) * 100 : 0;
+                        
+                        // Enhanced debug logging with task information
+                        console.log('📊 Enhanced Scroll Event:', {
+                            position: Math.round(currentScrollY),
+                            delta: Math.round(scrollDelta),
+                            direction: scrollDirection,
+                            headerState: manuallyHidden ? 'HIDDEN' : 'VISIBLE',
+                            visibleTaskIndex: currentVisibleTaskIndex + 1, // Show 1-based index
+                            totalTasks: totalTasks,
+                            scrollPercentage: Math.round(scrollPercentage),
+                            willTrigger: shouldTriggerHeaderChange(currentScrollY, scrollDirection),
+                            taskChanged: taskIndexChanged
+                        });
+                        
+                        // Apply header logic based on scroll position and direction
+                        handleHeaderVisibility(currentScrollY, scrollDirection);
+                        
+                        lastScrollPosition = currentScrollY;
+                        isScrolling = false;
+                    }, 50); // 50ms debounce - prevents too frequent updates
+                };
+                
+                // Determine if header state should change
+                const shouldTriggerHeaderChange = (scrollY, direction) => {
+                    // Always show at top
+                    if (scrollY <= SCROLL_TOP_THRESHOLD) return true;
+                    
+                    // Hide when scrolling down past threshold
+                    if (direction === 'down' && scrollY > SCROLL_THRESHOLD && !manuallyHidden) return true;
+                    
+                    // Don't auto-show when scrolling up (user must use button)
+                    return false;
+                };
+                
+                // Handle header visibility changes
+                const handleHeaderVisibility = (scrollY, direction) => {
+                    // Don't trigger auto-hide during initial mount to prevent conflicts with manual toggles
+                    if (isInitialMount) {
+                        console.log('🚫 Skipping auto-hide during initial mount, scrollY:', scrollY, 'direction:', direction);
+                        return;
+                    }
+                    
+                    // Case 1: At the very top - always show header
+                    if (scrollY <= SCROLL_TOP_THRESHOLD) {
+                        if (manuallyHidden) {
+                            console.log('🔝 At top - showing header (scrollY:', scrollY, ')');
+                            toggleHeaderManually();
+                        }
+                        return;
+                    }
+                    
+                    // Case 2: Auto-hide when scrolling down past task 2
+                    if (direction === 'down' && currentVisibleTaskIndex >= 2 && !manuallyHidden) {
+                        console.log('⬇️ Auto-hiding header - past task 2, current task index:', currentVisibleTaskIndex + 1);
+                        
+                        // Also collapse instructions if they're expanded
+                        if (isExpanded) {
+                            console.log('📝 Auto-collapsing instructions');
+                            setIsExpanded(false);
+                        }
+                        
+                        // Hide the header
+                        toggleHeaderManually();
+                        return;
+                    }
+                    
+                    // Case 3: Already hidden and scrolling further down - do nothing
+                    if (direction === 'down' && manuallyHidden) {
+                        console.log('⬇️ Scrolling down with header already hidden - no action needed, task index:', currentVisibleTaskIndex + 1);
+                        return;
+                    }
+                    
+                    // Case 4: Scrolling up - header stays hidden (user must manually show header)
+                    if (direction === 'up' && manuallyHidden) {
+                        console.log('⬆️ Scrolling up - header stays hidden (manual toggle required), task index:', currentVisibleTaskIndex + 1);
+                        return;
+                    }
+                };
+                
+                // Touch handling for mobile devices (simplified)
+                let touchStartY = 0;
+                let touchMoveTimer = null;
+                
                 const handleTouchStart = (e) => {
                     touchStartY = e.touches[0].clientY;
                 };
                 
-                // Improved touch handling with better debounce
-                let touchMoveTimer = null;
-                
                 const handleTouchMove = (e) => {
-                    // Clear any existing timeout to prevent rapid firing
+                    // Only handle touch moves when not already scrolling via scroll events
+                    if (isScrolling) return;
+                    
                     if (touchMoveTimer) clearTimeout(touchMoveTimer);
                     
                     const touchY = e.touches[0].clientY;
-                    const diff = touchStartY - touchY;
+                    const touchDelta = touchStartY - touchY;
                     
-                    // Use a timeout to debounce and prevent jerky header movement
+                    // Debounce touch moves
                     touchMoveTimer = setTimeout(() => {
-                        // Going up (negative diff)
-                        if (diff < -15) {
-                            // Only restore header if we're at the very top of the page
-                            if (window.scrollY <= 20 && manuallyHidden) {
-                                toggleHeaderManually(); // Use same function as button press
-                            }
-                            // Don't automatically show header when swiping up anywhere else
-                            // User must press the button to restore it
-                        } 
-                        // Going down (positive diff)
-                        else if (diff > 10) {  // More sensitive detection
-                            // Hide the header with any downward swipe if not already hidden
-                            if (!manuallyHidden && window.scrollY > 30) {
-                                console.log('Hiding header on touch down: ', diff);
-                                toggleHeaderManually(); // Use same function as button press, for consistency
-                            } else if (manuallyHidden) {
-                                // If already manually hidden, ensure instructions stay collapsed
-                                setIsExpanded(false);
-                            }
+                        // Only trigger on significant touch movement
+                        if (Math.abs(touchDelta) > 20) {
+                            const touchDirection = touchDelta > 0 ? 'down' : 'up';
+                            
+                            // Get current scroll position from the content container
+                            const scrollContainer = getScrollContainer();
+                            const currentScrollY = scrollContainer ? scrollContainer.scrollTop : 0;
+                            
+                            console.log('👆 Touch movement:', {
+                                delta: Math.round(touchDelta),
+                                direction: touchDirection,
+                                scrollY: Math.round(currentScrollY),
+                                taskIndex: currentVisibleTaskIndex
+                            });
+                            
+                            // Apply same logic as scroll
+                            handleHeaderVisibility(currentScrollY, touchDirection);
                         }
                         
                         touchStartY = touchY;
-                    }, 10);
+                    }, 100); // Longer debounce for touch
                 };
                 
-                // Throttled scroll handler to prevent performance issues
-                let scrollTimer = null;
-                let lastScrollPos = 0; // Track last position for immediate comparison
+                // Add event listeners to the correct scroll container
+                const scrollContainer = getScrollContainer();
+                if (scrollContainer) {
+                    scrollContainer.addEventListener('scroll', handleScroll, { passive: true });
+                    console.log('📦 Attached scroll listener to content-section container');
+                } else {
+                    console.warn('⚠️ Content section not found, falling back to window scroll');
+                    window.addEventListener('scroll', handleScroll, { passive: true });
+                }
                 
-                const handleScroll = () => {
-                    // Don't run if we already have a pending timer
-                    if (scrollTimer) return;
-                    
-                    // Get current scroll position for immediate check
-                    const currentPos = window.scrollY;
-                    const isScrollingDown = currentPos > lastScrollPos;
-                    lastScrollPos = currentPos;
-                    
-                    // Direct DOM manipulation for immediate effect (before React state updates)
-                    // If scrolling down and not already hidden, hide the header immediately
-                    if (isScrollingDown && currentPos > 30 && !manuallyHidden) {
-                        const header = document.querySelector('.header-section');
-                        if (header) {
-                            header.style.transform = 'translateY(-100%)';
-                            header.style.opacity = '0';
-                        }
-                    }
-                    
-                    // Use requestAnimationFrame for smooth performance
-                    scrollTimer = requestAnimationFrame(() => {
-                        const currentScrollY = window.scrollY;
-                        
-                        // Calculate how much we've scrolled since last check
-                        const scrollDelta = Math.abs(currentScrollY - lastScrollY);
-                        
-                        // Only log every 10 scroll events to avoid flooding the console
-                        if (Math.random() < 0.1) {
-                            console.log('React Header: Scroll event', { 
-                                currentY: Math.round(currentScrollY), 
-                                delta: Math.round(scrollDelta),
-                                direction: currentScrollY > lastScrollY ? 'DOWN' : 'UP',
-                                headerState: manuallyHidden ? 'HIDDEN' : 'VISIBLE'
-                            });
-                        }
-                        
-                        // Always show header at the very top of the page
-                        if (currentScrollY <= 20) {
-                            // If the header was manually hidden by scrolling down, show it again when at top
-                            if (manuallyHidden) {
-                                toggleHeaderManually(); // Restore the search bar - uses the same function as button press
-                            } else {
-                                setHeaderVisible(true);
-                            }
-                            
-                            // Don't auto-expand instructions even at the top
-                            // User must click the button to show them
-                        } 
-                        // Scrolling up - DON'T show the header automatically when scrolling up
-                        // User must manually click the button to show it again after it's hidden
-                        else if (currentScrollY < lastScrollY && scrollDelta > 20) {
-                            // Do nothing - keep header hidden when scrolling up
-                            // Only toggle button press will restore it
-                        }
-                        // Scrolling down - hide header if we've scrolled enough
-                        else if (currentScrollY > lastScrollY) {
-                            // Always hide on scroll down at any distance
-                            if (!manuallyHidden) {
-                                console.log('IMPORTANT: Hiding header on scroll down:', currentScrollY);
-                                
-                                // Set state first
-                                setHeaderVisible(false);
-                                setManuallyHidden(true);
-                                
-                                // FORCEFULLY hide the header using direct DOM manipulation
-                                const header = document.querySelector('.header-section');
-                                if (header) {
-                                    header.style.transform = 'translateY(-100%)';
-                                    header.style.opacity = '0';
-                                    header.style.pointerEvents = 'none';
-                                    header.classList.remove('sticky-visible');
-                                }
-                                
-                                // Reset content padding immediately
-                                const content = document.querySelector('.content-section');
-                                if (content) {
-                                    content.style.paddingTop = '40px';
-                                }
-                                
-                                // Force update the button text and style
-                                const toggleBtn = document.getElementById('header-toggle-button');
-                                if (toggleBtn) {
-                                    toggleBtn.textContent = '▲ Suche anzeigen';
-                                    toggleBtn.style.borderRadius = '20px';
-                                    toggleBtn.style.top = '5px';
-                                    toggleBtn.style.background = 'rgba(255, 215, 0, 0.4)';
-                                }
-                                
-                                // Add manually hidden class to body
-                                document.body.classList.add('manually-hidden-header');
-                            }
-                        }
-                        
-                        setLastScrollY(currentScrollY);
-                        scrollTimer = null;
-                    });
-                };
-                
-                // Add all event listeners (always, regardless of header state)
-                window.addEventListener('scroll', handleScroll, { passive: true });
+                // Touch events still go on window since they're global gestures
                 window.addEventListener('touchstart', handleTouchStart, { passive: true });
                 window.addEventListener('touchmove', handleTouchMove, { passive: true });
+                
+                // Update total tasks when filtered tasks change
+                totalTasks = filteredTasks.length;
+                
+                // Set initial mount flag to false after a short delay to allow manual toggles to work
+                const initialMountTimer = setTimeout(() => {
+                    isInitialMount = false;
+                    console.log('✅ Initial mount period ended - auto-hide logic now active');
+                }, 1000); // 1 second delay to prevent conflicts with manual button presses
                 
                 // Also handle scroll button visibility separately from header visibility
                 const updateScrollButtonVisibility = () => {
                     const scrollButton = document.getElementById('scrollTopButton');
+                    const scrollContainer = getScrollContainer();
+                    const currentScroll = scrollContainer ? scrollContainer.scrollTop : window.scrollY;
+                    
                     if (scrollButton) {
-                        if (window.scrollY > 200) {
-                            scrollButton.style.opacity = '1';
-                            scrollButton.style.pointerEvents = 'auto';
-                            scrollButton.style.transform = 'scale(1)';
-                        } else {
-                            scrollButton.style.opacity = '0';
-                            scrollButton.style.pointerEvents = 'none';
-                            scrollButton.style.transform = 'scale(0.95)';
-                        }
+                        // Always show the scroll button (except on login screen)
+                        scrollButton.style.opacity = '1';
+                        scrollButton.style.pointerEvents = 'auto';
+                        scrollButton.style.transform = 'scale(1)';
                     }
                     
                     // Update the header toggle button appearance and text
                     const toggleBtn = document.getElementById('header-toggle-button');
                     if (toggleBtn) {
-                        toggleBtn.style.opacity = window.scrollY > 10 ? '0.9' : '0.6';
+                        toggleBtn.style.opacity = currentScroll > 10 ? '0.9' : '0.6';
                         
                         // Update button text based on header state
                         // If manually hidden (either by button press or auto-hide when scrolling), show "Show search"
-                        if (manuallyHidden || (window.scrollY > 80 && !headerVisible)) {
+                        if (manuallyHidden || (currentScroll > 80 && !headerVisible)) {
                             toggleBtn.textContent = '▲ Suche anzeigen';
                         } else {
                             toggleBtn.textContent = '▼ Suche ausblenden';
                         }
                     }
                 };
-                window.addEventListener('scroll', updateScrollButtonVisibility, { passive: true });
+                
+                // Attach scroll button update to the correct container
+                if (scrollContainer) {
+                    scrollContainer.addEventListener('scroll', updateScrollButtonVisibility, { passive: true });
+                } else {
+                    window.addEventListener('scroll', updateScrollButtonVisibility, { passive: true });
+                }
                 // Call immediately to set initial state
                 setTimeout(updateScrollButtonVisibility, 100);
                 
@@ -1775,17 +1864,24 @@
                 
                 return () => {
                     // Clean up all event listeners
-                    window.removeEventListener('scroll', handleScroll);
+                    const scrollContainer = getScrollContainer();
+                    if (scrollContainer) {
+                        scrollContainer.removeEventListener('scroll', handleScroll);
+                        scrollContainer.removeEventListener('scroll', updateScrollButtonVisibility);
+                    } else {
+                        window.removeEventListener('scroll', handleScroll);
+                        window.removeEventListener('scroll', updateScrollButtonVisibility);
+                    }
                     window.removeEventListener('touchstart', handleTouchStart);
                     window.removeEventListener('touchmove', handleTouchMove);
                     window.removeEventListener('resize', handleResize);
-                    window.removeEventListener('scroll', updateScrollButtonVisibility);
                     
                     // Clear any pending timers
                     if (touchMoveTimer) clearTimeout(touchMoveTimer);
-                    if (scrollTimer) cancelAnimationFrame(scrollTimer);
+                    if (scrollTimer) clearTimeout(scrollTimer);
+                    if (initialMountTimer) clearTimeout(initialMountTimer);
                 };
-            }, [lastScrollY, isExpanded, manuallyHidden]);
+            }, [lastScrollY, isExpanded]); // Removed manuallyHidden to prevent scroll system restart
             
             // Calculate header height for proper content padding
             useEffect(() => {
@@ -1795,16 +1891,9 @@
                     const exportMenu = document.querySelector('.export-menu');
                     
                     if (header && content) {
-                        // Fixed padding when header is manually hidden
+                        // SKIP padding updates when manually hidden - let the manual effect handle it
                         if (manuallyHidden && !forceUpdate) {
-                            // Just enough room for the toggle button
-                            content.style.paddingTop = '40px';
-                            
-                            // Also update export menu position if it exists
-                            if (exportMenu) {
-                                exportMenu.style.top = '50px';
-                            }
-                            
+                            console.log('⏭️ Skipping padding update - manually hidden');
                             return;
                         }
                         
@@ -1817,14 +1906,19 @@
                         // Force browser to recalculate layout for accurate measurements
                         void header.offsetHeight; // Trigger reflow
                         
-                        // Ensure the header is temporarily displayed for correct measurement
-                        // if it's currently hidden but we're measuring it
-                        const wasHidden = header.style.display === 'none' || 
-                                         header.style.visibility === 'hidden' ||
-                                         header.style.opacity === '0';
+                        // Get header height - handle both visible and hidden states
+                        let headerHeight;
                         
-                        if (wasHidden) {
-                            // Temporarily make visible just for measurement
+                        // Check if header is currently visible
+                        const isHeaderVisible = header.style.opacity !== '0' && 
+                                              header.style.transform !== 'translateY(-100%)' &&
+                                              !manuallyHidden;
+                        
+                        if (isHeaderVisible) {
+                            // Header is visible, measure directly
+                            headerHeight = header.offsetHeight;
+                        } else {
+                            // Header is hidden, temporarily show it for measurement
                             const originalDisplay = header.style.display;
                             const originalVisibility = header.style.visibility;
                             const originalOpacity = header.style.opacity;
@@ -1839,23 +1933,59 @@
                             void header.offsetHeight;
                             
                             // Get the actual height of the header after making it visible
-                            const headerHeight = header.offsetHeight;
-                            
-                            // Add buffer (30px instead of 20px) to prevent content from being hidden
-                            content.style.paddingTop = `${headerHeight + 30}px`;
+                            headerHeight = header.offsetHeight;
                             
                             // Restore original properties
                             header.style.display = originalDisplay;
                             header.style.visibility = originalVisibility;
                             header.style.opacity = originalOpacity;
                             header.style.transform = originalTransform;
-                        } else {
-                            // If header is already visible, just measure directly
-                            // Get the actual height - minimum 200px to prevent jerky behavior
-                            const headerHeight = Math.max(header.offsetHeight, header.classList.contains('sticky-visible') ? 200 : 0);
+                        }
+                        
+                        // NEW: Calculate exact position where tasks should start
+                        let idealTaskStartPosition = headerHeight;
+                        
+                        // Add buffer for export menu if it exists and is visible
+                        if (exportMenu && window.getComputedStyle(exportMenu).display !== 'none') {
+                            const exportMenuHeight = exportMenu.offsetHeight || 50;
+                            idealTaskStartPosition += exportMenuHeight + 20; // 20px margin
+                        }
+                        
+                        // Calculate optimal padding to position tasks just below all UI elements
+                        const optimalBuffer = 20; // Minimal buffer for clean spacing
+                        const finalPadding = idealTaskStartPosition + optimalBuffer;
+                        
+                        content.style.paddingTop = `${finalPadding}px`;
+                        
+                        // Add explicit debugging and force the padding with higher specificity
+                        content.style.setProperty('padding-top', `${finalPadding}px`, 'important');
+                        
+                        // Reduce console spam - only log on significant changes
+                        const currentState = `${headerHeight}-${finalPadding}-${isHeaderVisible}-${manuallyHidden}`;
+                        const lastState = window.lastPaddingState || '';
+                        
+                        if (currentState !== lastState) {
+                            console.log('📐 Content padding updated:', {
+                                headerHeight: headerHeight,
+                                idealTaskStart: idealTaskStartPosition,
+                                finalPadding: finalPadding,
+                                headerVisible: isHeaderVisible,
+                                manuallyHidden: manuallyHidden,
+                                gapReduction: `${80 - optimalBuffer}px saved`,
+                                paddingForced: true
+                            });
                             
-                            // Add buffer (30px instead of 20px) to prevent content from being hidden
-                            content.style.paddingTop = `${headerHeight + 30}px`;
+                            // Also verify the padding was actually applied
+                            setTimeout(() => {
+                                const appliedPadding = window.getComputedStyle(content).paddingTop;
+                                console.log('✅ Padding verification:', {
+                                    expected: `${finalPadding}px`,
+                                    actual: appliedPadding,
+                                    success: appliedPadding === `${finalPadding}px`
+                                });
+                            }, 50);
+                            
+                            window.lastPaddingState = currentState;
                         }
                         
                         if (forceUpdate) {
@@ -1867,53 +1997,162 @@
                     }
                 };
                 
-                // Run on mount and whenever header visibility changes
+                // Run immediately on mount for faster initial positioning
                 updateContentPadding(true); // Force update on mount
                 
-                // Set up a series of checks to ensure padding is correct
-                const initialTimer = setTimeout(() => updateContentPadding(true), 100);
-                const secondTimer = setTimeout(() => updateContentPadding(true), 300);
-                const finalTimer = setTimeout(() => updateContentPadding(), 600);
-                // Additional check for when initial-load class is removed
-                const postInitTimer = setTimeout(() => updateContentPadding(true), 1100);
+                // Reduced timer setup to prevent spam - only essential checks
+                const immediateTimer = setTimeout(() => updateContentPadding(true), 100);
+                const finalTimer = setTimeout(() => updateContentPadding(true), 800);
                 
                 // And whenever window is resized
-                window.addEventListener('resize', () => updateContentPadding());
+                const handleResize = () => updateContentPadding(true);
+                window.addEventListener('resize', handleResize);
                 
                 // Special handler for the expand/collapse of instructions
-                const isExpandedObserver = new MutationObserver(() => {
-                    setTimeout(() => updateContentPadding(), 200);
+                let mutationTimer = null;
+                const headerObserver = new MutationObserver((mutations) => {
+                    // Only trigger on meaningful changes that affect height
+                    const significantChange = mutations.some(mutation => {
+                        // Check for class changes that affect visibility/state
+                        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                            return true;
+                        }
+                        // Check for structural changes (adding/removing elements)
+                        if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+                            return true;
+                        }
+                        // Ignore style changes and minor mutations
+                        return false;
+                    });
+                    
+                    if (significantChange) {
+                        // Debounce mutations to prevent spam
+                        if (mutationTimer) clearTimeout(mutationTimer);
+                        mutationTimer = setTimeout(() => updateContentPadding(true), 300);
+                    }
                 });
                 
                 // Observe changes to the header to catch any dynamic height changes
                 if (document.querySelector('.header-section')) {
-                    isExpandedObserver.observe(document.querySelector('.header-section'), {
+                    headerObserver.observe(document.querySelector('.header-section'), {
                         attributes: true,
-                        childList: true,
-                        subtree: true,
-                        characterData: true
+                        attributeFilter: ['class', 'style'], // Only watch class and style changes
+                        childList: true, // Watch for adding/removing elements
+                        subtree: false, // Don't watch deep children
+                        characterData: false // Don't watch text changes
                     });
                 }
                 
                 return () => {
-                    clearTimeout(initialTimer);
-                    clearTimeout(secondTimer);
+                    clearTimeout(immediateTimer);
                     clearTimeout(finalTimer);
-                    clearTimeout(postInitTimer);
-                    window.removeEventListener('resize', () => updateContentPadding());
-                    isExpandedObserver.disconnect();
+                    if (mutationTimer) clearTimeout(mutationTimer);
+                    window.removeEventListener('resize', handleResize);
+                    headerObserver.disconnect();
                 };
-            }, [headerVisible, isExpanded, manuallyHidden]);
+            }, [headerVisible, isExpanded]); // Removed manuallyHidden to prevent constant re-calculation
+            
+            // Separate effect for manual header visibility changes (prevents full system restart)
+            useEffect(() => {
+                // Only handle padding adjustments for manual visibility changes
+                const header = document.querySelector('.header-section');
+                const content = document.querySelector('.content-section');
+                const exportMenu = document.querySelector('.export-menu');
+                
+                if (header && content) {
+                    if (manuallyHidden) {
+                        // Fixed padding when header is manually hidden
+                        content.style.setProperty('padding-top', '40px', 'important');
+                        if (exportMenu) {
+                            exportMenu.style.top = '50px';
+                        }
+                        console.log('🔒 Manual hide - padding locked to 40px');
+                        
+                        // STOP other padding monitors when manually hidden
+                        if (window.paddingMonitor) {
+                            clearInterval(window.paddingMonitor);
+                            window.paddingMonitor = null;
+                        }
+                    } else {
+                        // Recalculate padding when showing again
+                        const headerHeight = header.offsetHeight || 194;
+                        const optimalBuffer = 20;
+                        const finalPadding = headerHeight + optimalBuffer;
+                        content.style.setProperty('padding-top', `${finalPadding}px`, 'important');
+                        
+                        if (exportMenu) {
+                            const dynamicTop = headerHeight + 20;
+                            exportMenu.style.top = `${dynamicTop}px`;
+                        }
+                        console.log('🔓 Manual show - padding restored to', finalPadding + 'px');
+                    }
+                }
+            }, [manuallyHidden]); // Only manuallyHidden dependency
             
             // Add initial-load class to body on component mount and remove after initialization
             useEffect(() => {
                 // Add the initial-load class to prevent overlap during loading
                 document.body.classList.add('initial-load');
                 
-                // Remove the initial-load class sooner for better user experience
+                // Set proper initial padding immediately
+                const content = document.querySelector('.content-section');
+                const header = document.querySelector('.header-section');
+                if (content && header) {
+                    // Force immediate proper padding to prevent overlay - USE OPTIMIZED CALCULATION
+                    const headerHeight = header.offsetHeight || 200; // Fallback height
+                    
+                    // Use the same optimized calculation as everywhere else
+                    const exportMenu = document.querySelector('.export-menu');
+                    let idealTaskStartPosition = headerHeight;
+                    
+                    // Add buffer for export menu if it exists and is visible
+                    if (exportMenu && window.getComputedStyle(exportMenu).display !== 'none') {
+                        const exportMenuHeight = exportMenu.offsetHeight || 50;
+                        idealTaskStartPosition += exportMenuHeight + 20; // 20px margin
+                    }
+                    
+                    // Calculate optimal padding with minimal buffer
+                    const optimalBuffer = 20; // Same as main function
+                    const finalPadding = idealTaskStartPosition + optimalBuffer;
+                    
+                    content.style.paddingTop = `${finalPadding}px`;
+                    console.log('🚀 Initial optimized padding set immediately:', finalPadding + 'px');
+                    
+                    // Force the padding with higher specificity to override any CSS
+                    content.style.setProperty('padding-top', `${finalPadding}px`, 'important');
+                    
+                    // Add a monitoring system to detect if padding gets reset
+                    // Store the monitor reference globally so we can clear old ones
+                    if (window.paddingMonitor) {
+                        clearInterval(window.paddingMonitor);
+                    }
+                    
+                    window.paddingMonitor = setInterval(() => {
+                        const currentPadding = window.getComputedStyle(content).paddingTop;
+                        if (currentPadding !== `${finalPadding}px`) {
+                            console.warn('🚨 Padding was reset!', {
+                                expected: `${finalPadding}px`,
+                                current: currentPadding,
+                                restoring: true
+                            });
+                            content.style.setProperty('padding-top', `${finalPadding}px`, 'important');
+                        }
+                    }, 500);
+                    
+                    // Clear monitor after 5 seconds and store reference for cleanup
+                    setTimeout(() => {
+                        if (window.paddingMonitor) {
+                            clearInterval(window.paddingMonitor);
+                            window.paddingMonitor = null;
+                        }
+                    }, 5000);
+                }
+                
+                // Remove the initial-load class for faster initialization
                 const removeInitialLoadClass = setTimeout(() => {
                     document.body.classList.remove('initial-load');
-                }, 500); // Reduced to 500ms for faster initialization
+                    console.log('🎬 Initial load class removed - normal operation started');
+                }, 300); // Reduced to 300ms for faster initialization
                 
                 return () => {
                     clearTimeout(removeInitialLoadClass);
@@ -1959,217 +2198,17 @@
                 }
             }, [lastScrollY, isExpanded, manuallyHidden]);
             
-            // Function to toggle header visibility manually with improved positioning updates
+            // Function to toggle header visibility manually - simplified to prevent React re-mounting
             const toggleHeaderManually = () => {
                 console.log("Toggle header button clicked!");
                 
                 const newHiddenState = !manuallyHidden;
                 setManuallyHidden(newHiddenState);
                 
-                // FORCEFULLY update the header state in the DOM
-                const header = document.querySelector('.header-section');
-                if (header) {
-                    if (newHiddenState) {
-                        // Hide the header
-                        header.style.transform = 'translateY(-100%)';
-                        header.style.opacity = '0';
-                        header.style.pointerEvents = 'none';
-                        header.classList.remove('sticky-visible');
-                    } else {
-                        // Show the header
-                        header.style.transform = 'translateY(0)';
-                        header.style.opacity = '1';
-                        header.style.pointerEvents = 'auto';
-                        header.classList.add('sticky-visible');
-                    }
-                }
+                // Let React handle the state change naturally without aggressive DOM manipulation
+                // The useEffect hooks will handle the proper updates based on the manuallyHidden state
                 
-                // Update button text and style directly
-                const toggleBtn = document.getElementById('header-toggle-button');
-                if (toggleBtn) {
-                    toggleBtn.textContent = newHiddenState ? '▲ Suche anzeigen' : '▼ Suche ausblenden';
-                    toggleBtn.style.borderRadius = newHiddenState ? '20px' : '0 0 20px 20px';
-                    toggleBtn.style.top = newHiddenState ? '5px' : '0';
-                    toggleBtn.style.background = newHiddenState ? 'rgba(255, 215, 0, 0.4)' : 'rgba(255, 215, 0, 0.2)';
-                }
-                
-                // Reset content padding immediately to prevent gap issues
-                const content = document.querySelector('.content-section');
-                if (content) {
-                    // When showing the header, use a small padding; when hiding, use more
-                    content.style.paddingTop = newHiddenState ? '40px' : '200px';
-                }
-                
-                // Add or remove class to body for CSS targeting
-                if (newHiddenState) {
-                    document.body.classList.add('manually-hidden-header');
-                } else {
-                    document.body.classList.remove('manually-hidden-header');
-                }
-                
-                // If showing the header again
-                if (newHiddenState === false) {
-                    // First make it visible
-                    setHeaderVisible(true);
-                    
-                    // Create and show a visual indicator for debugging (shows what's happening with padding)
-                    const debugIndicator = document.createElement('div');
-                    debugIndicator.id = 'padding-debug';
-                    debugIndicator.style.position = 'fixed';
-                    debugIndicator.style.top = '80px';
-                    debugIndicator.style.right = '20px';
-                    debugIndicator.style.backgroundColor = 'rgba(255, 0, 0, 0.7)'; // Red for visibility
-                    debugIndicator.style.padding = '5px 10px';
-                    debugIndicator.style.borderRadius = '4px';
-                    debugIndicator.style.zIndex = '9999';
-                    debugIndicator.style.fontSize = '12px';
-                    debugIndicator.style.fontWeight = 'bold';
-                    debugIndicator.style.color = '#fff';
-                    debugIndicator.textContent = 'Showing Header...';
-                    document.body.appendChild(debugIndicator);
-                    
-                    // Completely reset and show the header with a new approach
-                    document.body.style.cursor = 'wait'; // Show loading cursor during recalculation
-                    
-                    // Force a complete reset of the DOM before we start measuring
-                    setTimeout(() => {
-                        const header = document.querySelector('.header-section');
-                        const content = document.querySelector('.content-section');
-                        
-                        if (header && content) {
-                            // Step 1: Reset header to known good state and force it visible
-                            header.style.cssText = `
-                                display: block !important;
-                                visibility: visible !important;
-                                opacity: 1 !important;
-                                transform: translateY(0) !important;
-                                transition: none !important;
-                                position: fixed !important;
-                                top: 0 !important;
-                                left: 0 !important;
-                                width: 100% !important;
-                                z-index: 2000 !important;
-                            `;
-                            header.classList.add('sticky-visible');
-                            
-                            // Force browser to recalculate layout completely
-                            void document.documentElement.offsetHeight;
-                            
-                            // Log what we're measuring
-                            console.log('Initial header height:', header.offsetHeight);
-                            
-                            // Set initial high padding to ensure content is well below header
-                            // Use a fixed high value first to ensure nothing overlaps
-                            const initialSafePadding = 450; // Very high value to start with
-                            content.style.paddingTop = `${initialSafePadding}px`;
-                            
-                            if (debugIndicator) {
-                                debugIndicator.textContent = `Safe initial: ${initialSafePadding}px`;
-                            }
-                            
-                            // Step 2: After initial timeout, measure header properly and adjust
-                            setTimeout(() => {
-                                // Turn transitions back on for content but keep header stable
-                                content.style.transition = 'padding-top 0.5s ease';
-                                
-                                // Measure header height accurately now that it's fully visible
-                                const measuredHeight = header.offsetHeight;
-                                const finalPadding = measuredHeight + 50; // Increased buffer for more space
-                                
-                                // Apply final padding
-                                content.style.paddingTop = `${finalPadding}px`;
-                                
-                                console.log('Measured header height:', measuredHeight, 'Final padding:', finalPadding);
-                                
-                                if (debugIndicator) {
-                                    debugIndicator.textContent = `Measured: ${measuredHeight}px → Padding: ${finalPadding}px`;
-                                    debugIndicator.style.backgroundColor = 'rgba(0, 128, 0, 0.7)'; // Green for success
-                                }
-                                
-                                // Step 3: Apply a CSS class that forces content below header
-                                // This is a backup mechanism in case JavaScript calculations fail
-                                document.body.classList.add('force-content-below-header');
-                                
-                                // Re-enable normal header transitions
-                                setTimeout(() => {
-                                    header.style.transition = '';
-                                    
-                                    // Final check with browser reflow
-                                    void document.documentElement.offsetHeight;
-                                    
-                                    // Check if the header height changed
-                                    const finalHeight = header.offsetHeight;
-                                    if (Math.abs(finalHeight - measuredHeight) > 10) {
-                                        // If there's a significant difference, update again
-                                        const absoluteFinalPadding = finalHeight + 50; // Increased buffer for more space
-                                        content.style.paddingTop = `${absoluteFinalPadding}px`;
-                                        
-                                        if (debugIndicator) {
-                                            debugIndicator.textContent = `Final: ${finalHeight}px → Padding: ${absoluteFinalPadding}px`;
-                                        }
-                                    }
-                                    
-                                    // Return cursor to normal
-                                    document.body.style.cursor = '';
-                                    
-                                    // Update export menu position
-                                    updateExportMenuPosition();
-                                    
-                                    // Remove debug indicator after 5 seconds
-                                    setTimeout(() => {
-                                        if (debugIndicator && debugIndicator.parentNode) {
-                                            debugIndicator.parentNode.removeChild(debugIndicator);
-                                        }
-                                    }, 5000);
-                                }, 300);
-                            }, 300);
-                        }
-                    }, 50);
-                } else {
-                    // If hiding the header, immediately adjust padding but with a smooth transition
-                    const content = document.querySelector('.content-section');
-                    if (content) {
-                        // Create and show a visual indicator for debugging
-                        const debugIndicator = document.createElement('div');
-                        debugIndicator.id = 'padding-debug';
-                        debugIndicator.style.position = 'fixed';
-                        debugIndicator.style.top = '80px';
-                        debugIndicator.style.right = '20px';
-                        debugIndicator.style.backgroundColor = 'rgba(0, 0, 255, 0.7)';
-                        debugIndicator.style.padding = '5px 10px';
-                        debugIndicator.style.borderRadius = '4px';
-                        debugIndicator.style.zIndex = '9999';
-                        debugIndicator.style.fontSize = '12px';
-                        debugIndicator.style.fontWeight = 'bold';
-                        debugIndicator.style.color = '#fff';
-                        debugIndicator.textContent = 'Hiding Header...';
-                        document.body.appendChild(debugIndicator);
-                        
-                        // First ensure smooth transition
-                        content.style.transition = 'padding-top 0.3s ease';
-                        
-                        // Then adjust padding with a slight delay to allow animation
-                        setTimeout(() => {
-                            // Remove the special force-content CSS class if it exists
-                            document.body.classList.remove('force-content-below-header');
-                            
-                            // Set minimal padding for just the toggle button
-                            content.style.paddingTop = '40px';
-                            
-                            if (debugIndicator) {
-                                debugIndicator.textContent = 'Header hidden: 40px padding';
-                                debugIndicator.style.backgroundColor = 'rgba(0, 0, 255, 0.5)';
-                            }
-                            
-                            // Remove debug indicator after 5 seconds
-                            setTimeout(() => {
-                                if (debugIndicator && debugIndicator.parentNode) {
-                                    debugIndicator.parentNode.removeChild(debugIndicator);
-                                }
-                            }, 5000);
-                        }, 50);
-                    }
-                }
+                console.log(`🔄 Header ${newHiddenState ? 'hiding' : 'showing'} - React state updated`);
             };
             
             return (
@@ -2183,36 +2222,9 @@
                             toggleHeaderManually();
                         }}
                         onDoubleClick={() => {
-                            // Force extreme action on double-click if something is stuck
+                            // Force toggle via double-click - simplified
                             console.log("FORCE TOGGLE via double-click");
-                            const header = document.querySelector('.header-section');
-                            const btn = document.getElementById('header-toggle-button');
-                            const content = document.querySelector('.content-section');
-                            
-                            if (header && btn) {
-                                // Toggle visibility directly
-                                if (header.style.opacity === '0' || header.style.transform.includes('-100%')) {
-                                    // Show header
-                                    header.style.transform = 'translateY(0)';
-                                    header.style.opacity = '1';
-                                    header.style.pointerEvents = 'auto';
-                                    btn.textContent = '▼ Suche ausblenden';
-                                    btn.style.borderRadius = '0 0 20px 20px';
-                                    btn.style.top = '0';
-                                    if (content) content.style.paddingTop = '200px';
-                                    setManuallyHidden(false);
-                                } else {
-                                    // Hide header
-                                    header.style.transform = 'translateY(-100%)';
-                                    header.style.opacity = '0';
-                                    header.style.pointerEvents = 'none';
-                                    btn.textContent = '▲ Suche anzeigen';
-                                    btn.style.borderRadius = '20px';
-                                    btn.style.top = '5px';
-                                    if (content) content.style.paddingTop = '40px';
-                                    setManuallyHidden(true);
-                                }
-                            }
+                            setManuallyHidden(!manuallyHidden);
                         }}
                         style={{
                             position: 'fixed',
@@ -2969,10 +2981,38 @@
                     <button 
                         id="scrollTopButton"
                         onClick={() => {
-                            window.scrollTo({ top: 0, behavior: 'smooth' });
-                            // Also explicitly set state variables to ensure proper UI update
-                            setHeaderVisible(true);
-                            setIsExpanded(true);
+                            // Get the actual scroll container
+                            const scrollContainer = document.querySelector('.content-section');
+                            
+                            if (scrollContainer) {
+                                // Force scroll to top using the container's scroll methods
+                                scrollContainer.scrollTo({ top: 0, behavior: 'smooth' });
+                                scrollContainer.scrollTop = 0;
+                                
+                                console.log('📜 Scrolling container to top, container scrollTop:', scrollContainer.scrollTop);
+                            } else {
+                                // Fallback to window scroll if container not found
+                                window.scrollTo({ top: 0, behavior: 'smooth' });
+                                document.documentElement.scrollTop = 0;
+                                document.body.scrollTop = 0;
+                            }
+                            
+                            // Show the search header when scrolling to top
+                            if (manuallyHidden) {
+                                toggleHeaderManually();
+                            }
+                            
+                            // Additional force scroll after a small delay
+                            setTimeout(() => {
+                                if (scrollContainer) {
+                                    scrollContainer.scrollTo(0, 0);
+                                    scrollContainer.scrollTop = 0;
+                                } else {
+                                    window.scrollTo(0, 0);
+                                    document.documentElement.scrollTop = 0;
+                                    document.body.scrollTop = 0;
+                                }
+                            }, 100);
                         }}
                         style={{
                             position: 'fixed',
@@ -2984,9 +3024,9 @@
                             backgroundColor: 'rgba(255, 215, 0, 0.9)',
                             color: '#000',
                             border: 'none',
-                            display: 'flex', /* Always flex, opacity will control visibility */
-                            opacity: '0', /* Start hidden, JS will show it */
-                            pointerEvents: 'none', /* Start with no interactions */
+                            display: 'flex',
+                            opacity: '1', /* Always visible */
+                            pointerEvents: 'auto', /* Always interactive */
                             alignItems: 'center',
                             justifyContent: 'center',
                             fontSize: '24px',
@@ -2995,7 +3035,7 @@
                             boxShadow: '0 4px 15px rgba(0, 0, 0, 0.5)',
                             transition: 'opacity 0.3s ease, transform 0.3s ease',
                             fontWeight: 'bold',
-                            transform: 'scale(0.95)'
+                            transform: 'scale(1)' /* Always full size */
                         }}
                         title="Nach oben"
                     >
@@ -3003,13 +3043,28 @@
                     </button>
                 </div>
             );
-        };
+        }, (prevProps, nextProps) => {
+            // Only re-render if tasks array content actually changed
+            const tasksChanged = prevProps.tasks.length !== nextProps.tasks.length ||
+                                prevProps.tasks !== nextProps.tasks;
+            
+            if (!tasksChanged) {
+                console.log('🚫 React.memo: Preventing re-render - tasks unchanged');
+            } else {
+                console.log('✅ React.memo: Allowing re-render - tasks changed');
+            }
+            
+            return !tasksChanged; // Return true to PREVENT re-render, false to ALLOW
+        });
         
         // Main App Component - Simplified
         const App = () => {
             const [isLoggedIn, setIsLoggedIn] = useState(false);
             const [tasks, setTasks] = useState([]);
             const [error, setError] = useState('');
+            
+            // Debug: Log when App component renders
+            console.log("🏠 App component rendering - logged in:", isLoggedIn, "tasks count:", tasks.length);
             
             // Load data from CSV file on component mount
             useEffect(() => {
@@ -3076,13 +3131,19 @@
                 setError('Falsches Passwort. Bitte versuchen Sie es erneut.');
             };
             
+            // Memoize tasks to prevent unnecessary re-renders (MUST be before conditional return)
+            const memoizedTasks = React.useMemo(() => {
+                console.log('🔄 Memoizing tasks array, length:', tasks.length);
+                return tasks;
+            }, [tasks.length]); // Only re-memoize if tasks count changes, not the array reference
+            
             if (!isLoggedIn) {
                 return <LoginPage onLogin={handleLogin} onWrongPassword={handleWrongPassword} error={error} />;
             }
             
             return (
                 <TaskViewer 
-                    tasks={tasks} 
+                    tasks={memoizedTasks} 
                 />
             );
         };
