@@ -2,15 +2,16 @@ import React, { useState, useMemo } from 'react';
 import html2pdf from 'html2pdf.js';
 import type { TaskViewerProps } from '../types';
 import { groupTasksByOriginal, sortDaysByKirmesOrder, filterTasks } from '../utils/taskUtils';
-import TypeaheadDropdown, { type TypeaheadOption } from './TypeaheadDropdown';
+import { TypeAheadDropdown } from './TypeAheadDropdown';
 
 const TaskViewer: React.FC<TaskViewerProps> = ({ tasks }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [nameInputValue, setNameInputValue] = useState('');
   const [selectedDay, setSelectedDay] = useState('');
   const [selectedTask, setSelectedTask] = useState('');
   const [taskSearchTerm, setTaskSearchTerm] = useState('');
   const [isExpanded, setIsExpanded] = useState(false);
+  const [selectedNameOption, setSelectedNameOption] = useState<{ id: string; label: string } | null>(null);
+  const [selectedTaskOption, setSelectedTaskOption] = useState<{ id: string; label: string } | null>(null);
 
   // Get unique days and tasks for filters
   const uniqueDays = [...new Set(tasks.map(task => task.date))].filter(Boolean);
@@ -25,7 +26,7 @@ const TaskViewer: React.FC<TaskViewerProps> = ({ tasks }) => {
       }
     });
     return Array.from(allNames).sort().map(name => ({
-      value: name,
+      id: name,
       label: name
     }));
   }, [tasks]);
@@ -33,7 +34,7 @@ const TaskViewer: React.FC<TaskViewerProps> = ({ tasks }) => {
   // Get unique tasks for typeahead
   const taskOptions = useMemo(() => {
     return uniqueTasks.map(task => ({
-      value: task,
+      id: task,
       label: task
     }));
   }, [uniqueTasks]);
@@ -48,50 +49,52 @@ const TaskViewer: React.FC<TaskViewerProps> = ({ tasks }) => {
   const filteredTasks = filterTasks(groupedTasks, searchTerm, selectedDay, selectedTask, taskSearchTerm);
 
   // Handle task selection from typeahead
-  const handleTaskSelection = (selectedOption: TypeaheadOption | null) => {
+  const handleTaskSelection = (selectedOption: { id: string; label: string } | null) => {
+    setSelectedTaskOption(selectedOption);
     if (selectedOption) {
-      setTaskSearchTerm(selectedOption.value);
-      setSelectedTask(selectedOption.value);
+      setTaskSearchTerm(selectedOption.label);
+      setSelectedTask(selectedOption.label);
     } else {
       setTaskSearchTerm('');
       setSelectedTask('');
     }
   };
 
-  // Handle task input change from typeahead
-  const handleTaskInputChange = (inputValue: string) => {
-    setTaskSearchTerm(inputValue);
-    // Only clear the selected task if input is completely empty
-    if (inputValue.trim() === '') {
+  // Handle task search input
+  const handleTaskSearch = (query: string) => {
+    // Don't update taskSearchTerm while typing, only when selection is made
+    if (query.trim() === '') {
+      setTaskSearchTerm('');
       setSelectedTask('');
+      setSelectedTaskOption(null);
     }
   };
 
   const clearAllFilters = () => {
     setSearchTerm('');
-    setNameInputValue('');
     setSelectedDay('');
     setTaskSearchTerm('');
     setSelectedTask('');
+    setSelectedNameOption(null);
+    setSelectedTaskOption(null);
   };
 
   // Handle name selection from typeahead
-  const handleNameSelection = (selectedOption: TypeaheadOption | null) => {
+  const handleNameSelection = (selectedOption: { id: string; label: string } | null) => {
+    setSelectedNameOption(selectedOption);
     if (selectedOption) {
-      setSearchTerm(selectedOption.value);
-      setNameInputValue(selectedOption.value);
+      setSearchTerm(selectedOption.label);
     } else {
       setSearchTerm('');
-      setNameInputValue('');
     }
   };
 
-  // Handle name input change from typeahead (only update input, don't filter)
-  const handleNameInputChange = (inputValue: string) => {
-    setNameInputValue(inputValue);
-    // Only clear the search term if input is completely empty
-    if (inputValue.trim() === '') {
+  // Handle name search input
+  const handleNameSearch = (query: string) => {
+    // Don't update searchTerm while typing, only when selection is made
+    if (query.trim() === '') {
       setSearchTerm('');
+      setSelectedNameOption(null);
     }
   };
 
@@ -184,15 +187,12 @@ const TaskViewer: React.FC<TaskViewerProps> = ({ tasks }) => {
           
           {/* Primary Name Search */}
           <div className="primary-search" style={{ position: 'relative', marginBottom: '15px' }}>
-            <TypeaheadDropdown
+            <TypeAheadDropdown
               options={uniqueNames}
-              value={nameInputValue}
+              value={selectedNameOption}
               placeholder="Nach Namen suchen..."
               onChange={handleNameSelection}
-              onInputChange={handleNameInputChange}
-              allowCustomValue={true}
-              clearable={true}
-              className=""
+              onSearch={handleNameSearch}
             />
           </div>
           
@@ -210,17 +210,14 @@ const TaskViewer: React.FC<TaskViewerProps> = ({ tasks }) => {
               ))}
             </select>
             
-            {/* Task Search with TypeaheadDropdown */}
+            {/* Task Search with TypeAheadDropdown */}
             <div style={{ flex: 2, minWidth: '200px' }}>
-              <TypeaheadDropdown
+              <TypeAheadDropdown
                 options={taskOptions}
-                value={taskSearchTerm}
+                value={selectedTaskOption}
                 placeholder="Dienste suchen..."
                 onChange={handleTaskSelection}
-                onInputChange={handleTaskInputChange}
-                allowCustomValue={true}
-                clearable={true}
-                className=""
+                onSearch={handleTaskSearch}
               />
             </div>
             
@@ -228,7 +225,7 @@ const TaskViewer: React.FC<TaskViewerProps> = ({ tasks }) => {
             <button 
               onClick={clearAllFilters}
               className="nav-btn"
-              disabled={!(searchTerm || nameInputValue || selectedDay || selectedTask || taskSearchTerm)}
+              disabled={!(searchTerm || selectedDay || selectedTask || taskSearchTerm)}
             >
               {searchTerm ? '👥 Alle anzeigen' : '🔄 Reset'}
             </button>
