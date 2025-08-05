@@ -45,11 +45,6 @@ const FilterSection: React.FC<FilterSectionProps> = ({
         background: 'var(--secondary-black)',
       }}>
       <div className="filter-container">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-          <h1 style={{ color: 'var(--secondary-black)', margin: 0, fontSize: '2rem', fontWeight: 'bold' }}>
-            Bartholomäus-Kirmes Dienstplan
-          </h1>
-        </div>
         
         {/* Primary Name Search */}
         <div className="primary-search" style={{ position: 'relative', marginBottom: '15px' }}>
