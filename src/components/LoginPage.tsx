@@ -1,16 +1,32 @@
 import React, { useState } from 'react';
 import type { LoginPageProps } from '../types';
+import { sha256 } from '../utils/crypto';
 
 const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onWrongPassword, error }) => {
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  // SHA-256 hash of the correct password
+  const CORRECT_PASSWORD_HASH = '47cc927a6521894aa13fd435aa945967c64421a0e0a7e6f7ec942490c5055cde';
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === 'kirmes2025') {  // Main login password
-      onLogin();
-    } else {
+    setIsLoading(true);
+    
+    try {
+      const passwordHash = await sha256(password);
+      if (passwordHash === CORRECT_PASSWORD_HASH) {
+        onLogin();
+      } else {
+        onWrongPassword();
+        setPassword(''); // Clear password field
+      }
+    } catch (error) {
+      console.error('Error hashing password:', error);
       onWrongPassword();
       setPassword(''); // Clear password field
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -46,10 +62,11 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onWrongPassword, error }
               placeholder="Passwort eingeben..."
               className="login-input"
               autoFocus
+              disabled={isLoading}
             />
             
-            <button type="submit" className="login-btn">
-              Dienstplan anzeigen
+            <button type="submit" className="login-btn" disabled={isLoading}>
+              {isLoading ? 'Überprüfe...' : 'Dienstplan anzeigen'}
             </button>
           </form>
           
