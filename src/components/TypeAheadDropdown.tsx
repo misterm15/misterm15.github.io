@@ -80,9 +80,9 @@ export const TypeAheadDropdown = <T extends Option>({
                     autoComplete="off"
                     onFocus={() => setIsOpen(true)}
                 />
-                {isOpen && searchQuery && filteredOptions.length > 0 && (
+                {isOpen && (filteredOptions.length > 0 || (!searchQuery && options.length > 0)) && (
                     <div className="typeahead-dropdown">
-                        {filteredOptions.map(option => (
+                        {(searchQuery ? filteredOptions : options).map(option => (
                             <div
                                 key={option.id}
                                 className="typeahead-option"

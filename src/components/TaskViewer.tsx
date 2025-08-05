@@ -15,6 +15,7 @@ const TaskViewer: React.FC<TaskViewerProps> = ({ tasks }) => {
   const [taskSearchTerm, setTaskSearchTerm] = useState('');
   const [selectedNameOption, setSelectedNameOption] = useState<{ id: string; label: string } | null>(null);
   const [selectedTaskOption, setSelectedTaskOption] = useState<{ id: string; label: string } | null>(null);
+  const [selectedDayOption, setSelectedDayOption] = useState<{ id: string; label: string } | null>(null);
 
   // Get unique days and tasks for filters
   const uniqueDays = [...new Set(tasks.map(task => task.date))].filter(Boolean);
@@ -42,8 +43,14 @@ const TaskViewer: React.FC<TaskViewerProps> = ({ tasks }) => {
     }));
   }, [uniqueTasks]);
 
-  // Sort days in Kirmes order
+  // Sort days in Kirmes order and create day options for typeahead
   const sortedDays = sortDaysByKirmesOrder(uniqueDays);
+  const dayOptions = useMemo(() => {
+    return sortedDays.map(day => ({
+      id: day,
+      label: day
+    }));
+  }, [sortedDays]);
 
   // Group tasks by their original order (chronological)
   const groupedTasks = groupTasksByOriginal(tasks);
@@ -80,6 +87,7 @@ const TaskViewer: React.FC<TaskViewerProps> = ({ tasks }) => {
     setSelectedTask('');
     setSelectedNameOption(null);
     setSelectedTaskOption(null);
+    setSelectedDayOption(null);
   };
 
   // Handle name selection from typeahead
@@ -101,6 +109,25 @@ const TaskViewer: React.FC<TaskViewerProps> = ({ tasks }) => {
     }
   };
 
+  // Handle day selection from typeahead
+  const handleDaySelection = (selectedOption: { id: string; label: string } | null) => {
+    setSelectedDayOption(selectedOption);
+    if (selectedOption) {
+      setSelectedDay(selectedOption.label);
+    } else {
+      setSelectedDay('');
+    }
+  };
+
+  // Handle day search input
+  const handleDaySearch = (query: string) => {
+    // Don't update selectedDay while typing, only when selection is made
+    if (query.trim() === '') {
+      setSelectedDay('');
+      setSelectedDayOption(null);
+    }
+  };
+
   return (
     <div className="main-layout">
       <NavigationBar />
@@ -112,12 +139,14 @@ const TaskViewer: React.FC<TaskViewerProps> = ({ tasks }) => {
         taskSearchTerm={taskSearchTerm}
         selectedNameOption={selectedNameOption}
         selectedTaskOption={selectedTaskOption}
+        selectedDayOption={selectedDayOption}
         uniqueNames={uniqueNames}
         taskOptions={taskOptions}
-        sortedDays={sortedDays}
+        dayOptions={dayOptions}
         onNameSelection={handleNameSelection}
         onNameSearch={handleNameSearch}
-        onDayChange={setSelectedDay}
+        onDaySelection={handleDaySelection}
+        onDaySearch={handleDaySearch}
         onTaskSelection={handleTaskSelection}
         onTaskSearch={handleTaskSearch}
         onClearFilters={clearAllFilters}

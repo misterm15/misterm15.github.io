@@ -8,12 +8,14 @@ interface FilterSectionProps {
   taskSearchTerm: string;
   selectedNameOption: { id: string; label: string } | null;
   selectedTaskOption: { id: string; label: string } | null;
+  selectedDayOption: { id: string; label: string } | null;
   uniqueNames: { id: string; label: string }[];
   taskOptions: { id: string; label: string }[];
-  sortedDays: string[];
+  dayOptions: { id: string; label: string }[];
   onNameSelection: (selectedOption: { id: string; label: string } | null) => void;
   onNameSearch: (query: string) => void;
-  onDayChange: (day: string) => void;
+  onDaySelection: (selectedOption: { id: string; label: string } | null) => void;
+  onDaySearch: (query: string) => void;
   onTaskSelection: (selectedOption: { id: string; label: string } | null) => void;
   onTaskSearch: (query: string) => void;
   onClearFilters: () => void;
@@ -26,12 +28,14 @@ const FilterSection: React.FC<FilterSectionProps> = ({
   taskSearchTerm,
   selectedNameOption,
   selectedTaskOption,
+  selectedDayOption,
   uniqueNames,
   taskOptions,
-  sortedDays,
+  dayOptions,
   onNameSelection,
   onNameSearch,
-  onDayChange,
+  onDaySelection,
+  onDaySearch,
   onTaskSelection,
   onTaskSearch,
   onClearFilters
@@ -60,16 +64,15 @@ const FilterSection: React.FC<FilterSectionProps> = ({
         {/* Secondary Filters */}
         <div className="secondary-filters" style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
           {/* Day Filter */}
-          <select 
-            className="filter-select"
-            value={selectedDay}
-            onChange={(e) => onDayChange(e.target.value)}
-          >
-            <option value="">Alle Tage</option>
-            {sortedDays.map(day => (
-              <option key={day} value={day}>{day}</option>
-            ))}
-          </select>
+          <div style={{ flex: 1, minWidth: '150px' }}>
+            <TypeAheadDropdown
+              options={dayOptions}
+              value={selectedDayOption}
+              placeholder="Tag auswählen..."
+              onChange={onDaySelection}
+              onSearch={onDaySearch}
+            />
+          </div>
           
           {/* Task Search with TypeAheadDropdown */}
           <div style={{ flex: 2, minWidth: '200px' }}>
