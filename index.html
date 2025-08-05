@@ -66,17 +66,19 @@
                 max-width: 100% !important;
                 padding: 0 !important;
                 margin: 0 !important;
+                /* Reduce spacing at the top of the content - more aggressively */
+                margin-top: -30px !important;
             }
             
             .task-card {
                 break-inside: avoid !important;
                 page-break-inside: avoid !important;
                 border: 1px solid #ccc !important;
-                margin-bottom: 8px !important; /* Reduced from 10px */
+                margin-bottom: 5px !important; /* Reduced from 8px */
                 margin-top: 0 !important;
                 background-color: white !important;
                 box-shadow: none !important;
-                padding: 8px !important; /* Reduced from 10px */
+                padding: 6px !important; /* Reduced from 8px */
                 font-size: 10pt !important; /* Reduced from 11pt */
             }
             
@@ -163,7 +165,7 @@
                 font-weight: bold !important;
                 display: block !important;
                 text-align: center !important;
-                margin-bottom: 5px !important;
+                margin-bottom: 2px !important; /* Reduced from 5px */
                 color: black !important;
             }
             
@@ -173,9 +175,9 @@
                 font-size: 14pt !important;
                 display: block !important;
                 text-align: center !important;
-                margin-bottom: 15px !important;
+                margin-bottom: 5px !important; /* Reduced from 15px */
                 color: #000 !important;
-                margin-top: 5px !important;
+                margin-top: 2px !important; /* Reduced from 5px */
             }
             
             /* Compact person listing */
@@ -227,10 +229,10 @@
                 text-align: center !important;
                 font-size: 14pt !important;
                 font-weight: bold !important; /* Make the person name bold */
-                margin-bottom: 15px !important;
+                margin-bottom: 2px !important; /* Drastically reduced */
                 color: #000 !important; /* Darker color to match PDF */
                 border-bottom: 1px dotted #ccc !important;
-                padding-bottom: 10px !important;
+                padding-bottom: 2px !important; /* Drastically reduced */
             }
             
             /* Footer with date and personalized message */
@@ -345,14 +347,16 @@
         /* Additional class to force content below header - adjusted gap */
         .force-content-below-header .content-section {
             margin-top: 320px !important; /* Slightly increased to avoid overlap */
-            padding-top: 50px !important; /* Increased buffer */
+            /* Use consistent padding from variables */
+            padding-top: calc(var(--header-height, 200px) + var(--standard-buffer, 15px)) !important;
             position: relative;
             z-index: 1000; /* Below header but above other content */
         }
         
         /* Style to apply on initial page load to prevent overlap before JS runs */
         .initial-load .content-section {
-            padding-top: 320px !important; /* Increased initial padding to prevent overlap */
+            /* Use consistent padding from variables */
+            padding-top: calc(var(--header-height, 200px) + var(--standard-buffer, 15px)) !important;
             margin-top: 10px !important; /* Small margin during initial load */
             transition: padding-top 0.5s ease-in-out, margin-top 0.5s ease-in-out; /* Faster transition for better user experience */
             position: relative;
@@ -964,7 +968,87 @@
             color: #FFD700;
         }
         
-
+        /* Cookie Banner Styles */
+        .cookie-banner {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            background: rgba(40, 40, 40, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5), 
+                        0 0 15px rgba(255, 215, 0, 0.2);
+            max-width: 500px;
+            width: 90%;
+            animation: slideInUp 0.5s ease-out;
+        }
+        
+        .cookie-content {
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .cookie-content h3 {
+            color: #FFD700;
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 1.5rem;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+        }
+        
+        .cookie-content p {
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 20px;
+            font-size: 15px;
+            line-height: 1.5;
+        }
+        
+        .cookie-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+        
+        .cookie-buttons button {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            min-width: 120px;
+        }
+        
+        .cookie-buttons button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        
+        .cookie-buttons .btn-success {
+            background: #FFD700;
+            color: #333;
+        }
+        
+        .cookie-buttons .btn-secondary {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            backdrop-filter: blur(5px);
+        }
+        
+        @keyframes slideInUp {
+            from {
+                transform: translate(-50%, 100px);
+                opacity: 0;
+            }
+            to {
+                transform: translate(-50%, 0);
+                opacity: 1;
+            }
+        }
         
         .container {
             position: relative;
@@ -1203,11 +1287,39 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
         
-        // Local Storage utilities
+        // Cookie and Local Storage utilities
         const StorageKeys = {
             TASKS: 'kirmes_tasks_data',
             LOGIN_STATUS: 'kirmes_login_status',
-            ADMIN_STATUS: 'kirmes_admin_status'
+            ADMIN_STATUS: 'kirmes_admin_status',
+            LOGIN_COOKIE: 'kirmes_login_cookie',
+            COOKIE_CONSENT: 'kirmes_cookie_consent'
+        };
+        
+        // Cookie utilities
+        const setCookie = (name, value, daysToExpire = 30) => {
+            const date = new Date();
+            date.setTime(date.getTime() + (daysToExpire * 24 * 60 * 60 * 1000));
+            const expires = "expires=" + date.toUTCString();
+            document.cookie = name + "=" + value + ";" + expires + ";path=/";
+            console.log(`🍪 Cookie set: ${name}`);
+        };
+        
+        const getCookie = (name) => {
+            const cookieName = name + "=";
+            const cookies = document.cookie.split(';');
+            for(let i = 0; i < cookies.length; i++) {
+                let cookie = cookies[i].trim();
+                if (cookie.indexOf(cookieName) === 0) {
+                    return cookie.substring(cookieName.length, cookie.length);
+                }
+            }
+            return "";
+        };
+        
+        const deleteCookie = (name) => {
+            document.cookie = name + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            console.log(`🍪 Cookie deleted: ${name}`);
         };
         
         const loadFromStorage = (key, defaultValue = null) => {
@@ -1301,7 +1413,9 @@
             const handleLogin = (e) => {
                 e.preventDefault();
                 if (password === 'kirmes2025') {  // Main login password
-                    onLogin();
+                    // Check if cookies are allowed and pass that information
+                    const cookieConsent = getCookie(StorageKeys.COOKIE_CONSENT) === "true";
+                    onLogin(password, cookieConsent);
                 } else {
                     onWrongPassword();
                     setPassword(''); // Clear password field
@@ -1344,7 +1458,7 @@
         };
         
         // Task Viewer Component - Modern Layout with Filters
-        const TaskViewer = React.memo(({ tasks }) => {
+        const TaskViewer = React.memo(({ tasks, onLogout }) => {
             // Add debug log to track when component actually re-renders vs re-mounts
             console.log("TaskViewer RENDER (not re-mount) - tasks count:", tasks.length);
             const [searchTerm, setSearchTerm] = useState('');
@@ -1382,80 +1496,27 @@
             };
             
             // Helper function to force recalculate content padding
+            // Helper function that redirects to our unified content padding handler
+            // This is kept for backward compatibility - all calls go to handleContentPaddingUpdate
             const forceUpdateContentPadding = (withDebug = false) => {
-                const header = document.querySelector('.header-section');
-                const content = document.querySelector('.content-section');
-                const exportMenu = document.querySelector('.export-menu');
+                // Delegate to our primary unified handler with appropriate reason
+                handleContentPaddingUpdate(withDebug ? "force update with debug" : "force update");
                 
-                if (header && content) {
-                    // If manually hidden, ensure we use the minimum padding
-                    if (manuallyHidden) {
-                        content.style.paddingTop = '40px';
-                        return;
-                    }
+                // If we're forcing with debug, log extra information about current state
+                if (withDebug) {
+                    const header = document.querySelector('.header-section');
+                    const content = document.querySelector('.content-section');
+                    const exportMenu = document.querySelector('.export-menu');
                     
-                    // Force header to be visible for measurement
-                    const originalDisplay = header.style.display;
-                    const originalVisibility = header.style.visibility;
-                    const originalOpacity = header.style.opacity;
-                    const originalTransform = header.style.transform;
-                    
-                    header.style.display = 'block';
-                    header.style.visibility = 'visible';
-                    header.style.opacity = '1';
-                    header.style.transform = 'translateY(0)';
-                    
-                    // Force reflow
-                    void header.offsetHeight;
-                    
-                    // Get accurate height
-                    const headerHeight = header.offsetHeight;
-                    
-                    // NEW: Calculate exact position where tasks should start
-                    let idealTaskStartPosition = headerHeight;
-                    
-                    // Add buffer for export menu if it exists and is visible
-                    if (exportMenu && window.getComputedStyle(exportMenu).display !== 'none') {
-                        const exportMenuHeight = exportMenu.offsetHeight || 50;
-                        idealTaskStartPosition += exportMenuHeight + 20; // 20px margin
-                    }
-                    
-                    // Calculate optimal padding with minimal buffer
-                    const optimalBuffer = 20; // Much smaller buffer
-                    const finalPadding = idealTaskStartPosition + optimalBuffer;
-                    
-                    content.style.paddingTop = `${finalPadding}px`;
-                    
-                    // Restore original properties if needed
-                    if (manuallyHidden) {
-                        header.style.display = originalDisplay;
-                        header.style.visibility = originalVisibility;
-                        header.style.opacity = originalOpacity;
-                        header.style.transform = originalTransform;
-                        
-                        // Adjust export menu position if it exists
-                        if (exportMenu) {
-                            exportMenu.style.top = '50px';
-                        }
-                    } else if (exportMenu) {
-                        // Normal position when header is visible - use dynamic calculation
-                        const dynamicTop = headerHeight + 20; // Header height + small buffer
-                        exportMenu.style.top = `${dynamicTop}px`;
-                    }
-                    
-                    if (withDebug) {
-                        // Reduce console spam - only log on significant changes
-                        const significantChange = Math.abs(headerHeight - (window.lastLoggedHeight || 0)) > 10;
-                        if (significantChange) {
-                            console.log('🔧 Force update content padding:', {
-                                headerHeight: headerHeight,
-                                idealTaskStart: idealTaskStartPosition,
-                                finalPadding: finalPadding,
-                                manuallyHidden: manuallyHidden,
-                                gapReduction: `${80 - optimalBuffer}px saved`
-                            });
-                            window.lastLoggedHeight = headerHeight;
-                        }
+                    if (header && content) {
+                        console.log('🔍 Force update debug info:', {
+                            headerHeight: header.offsetHeight,
+                            contentPadding: window.getComputedStyle(content).paddingTop,
+                            manuallyHidden: manuallyHidden,
+                            isInitialLoad: document.body.classList.contains('initial-load'),
+                            hasSearchTerm: !!searchTerm,
+                            exportMenuPosition: exportMenu ? exportMenu.style.top : 'N/A'
+                        });
                     }
                 }
             };
@@ -1505,40 +1566,40 @@
             
             const groupedTasks = groupTasksByOriginal(tasks);
             
-            // Function to update export menu position based on header state
+            // Function to update export menu position based on header state - simplified for consistency
             const updateExportMenuPosition = () => {
                 const exportMenu = document.querySelector('.export-menu');
                 if (!exportMenu) return;
                 
-                const body = document.body;
-                const isInitialLoad = body.classList.contains('initial-load');
                 const header = document.querySelector('.header-section');
+                if (!header) return;
+                
+                // Get standard buffer from CSS variables - single source of truth
+                const standardBuffer = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--standard-buffer') || '15');
+                
+                // Clear any existing transition styles for consistency
+                exportMenu.style.transition = 'none';
                 
                 if (manuallyHidden) {
-                    exportMenu.style.top = '50px';
+                    // Manually hidden header - fixed position for export menu
+                    exportMenu.style.top = '30px';
                     exportMenu.style.position = 'sticky';
-                } else if (isInitialLoad) {
-                    // During initial load, position to match screenshot
-                    exportMenu.style.top = '320px';
-                    exportMenu.style.position = 'relative';
-                    exportMenu.style.marginTop = '10px';
+                    exportMenu.style.marginTop = '0px';
+                    console.log('📋 Export menu positioned for manually hidden header: 30px');
                 } else {
-                    // Normal state - calculate dynamically based on actual header height
-                    if (header) {
-                        const headerHeight = header.offsetHeight || 194; // Fallback
-                        const dynamicTop = headerHeight + 20; // Header height + small buffer
-                        exportMenu.style.top = `${dynamicTop}px`;
-                        exportMenu.style.position = 'sticky';
-                        
-                        console.log('📊 Export menu positioned dynamically:', {
-                            headerHeight: headerHeight,
-                            exportMenuTop: dynamicTop
-                        });
-                    } else {
-                        // Fallback to static positioning
-                        exportMenu.style.top = '220px'; // Optimized fallback
-                        exportMenu.style.position = 'sticky';
-                    }
+                    // Standard positioning for all non-hidden states (initial load, post-initial, and normal)
+                    const headerHeight = header.offsetHeight || 200; // Fallback
+                    const top = headerHeight + standardBuffer;
+                    
+                    // Always use sticky positioning for consistency - same behavior in all states
+                    exportMenu.style.top = `${top}px`;
+                    exportMenu.style.position = 'sticky';
+                    exportMenu.style.marginTop = '0px';
+                    
+                    console.log('📋 Export menu positioned consistently:', {
+                        headerHeight: headerHeight,
+                        exportMenuTop: top
+                    });
                 }
             };
             
@@ -1567,6 +1628,8 @@
             const [isExpanded, setIsExpanded] = useState(false);
             // User can manually toggle header visibility
             const [manuallyHidden, setManuallyHidden] = useState(false);
+            // Flag to track initial load completion
+            const [initialLoadComplete, setInitialLoadComplete] = useState(false);
             
             // Handle scroll events for smart header
             useEffect(() => {
@@ -1705,9 +1768,9 @@
                         return;
                     }
                     
-                    // Case 2: Auto-hide when scrolling down past task 2
-                    if (direction === 'down' && currentVisibleTaskIndex >= 2 && !manuallyHidden) {
-                        console.log('⬇️ Auto-hiding header - past task 2, current task index:', currentVisibleTaskIndex + 1);
+                    // Case 2: Auto-hide when scrolling down past task 1 (reduced from task 2)
+                    if (direction === 'down' && currentVisibleTaskIndex >= 1 && !manuallyHidden && scrollY > 11) {
+                        console.log('⬇️ Auto-hiding header - past task 1, scrollY:', scrollY, 'current task index:', currentVisibleTaskIndex + 1);
                         
                         // Also collapse instructions if they're expanded
                         if (isExpanded) {
@@ -1817,8 +1880,10 @@
                         toggleBtn.style.opacity = currentScroll > 10 ? '0.9' : '0.6';
                         
                         // Update button text based on header state
-                        // If manually hidden (either by button press or auto-hide when scrolling), show "Show search"
-                        if (manuallyHidden || (currentScroll > 80 && !headerVisible)) {
+                        // Check both React state and DOM state for consistent behavior
+                        const isActuallyHidden = manuallyHidden || document.body.classList.contains('manually-hidden-header');
+                        
+                        if (isActuallyHidden) {
                             toggleBtn.textContent = '▲ Suche anzeigen';
                         } else {
                             toggleBtn.textContent = '▼ Suche ausblenden';
@@ -1835,32 +1900,35 @@
                 // Call immediately to set initial state
                 setTimeout(updateScrollButtonVisibility, 100);
                 
-                // Listen for resize events to optimize for mobile
-                const handleResize = () => {
-                    // Set smaller initial search bar padding on mobile
-                    if (window.innerWidth < 480) {
-                        const searchInput = document.querySelector('.primary-search input');
-                        if (searchInput) {
-                            searchInput.style.padding = '12px 30px 12px 12px';
-                            searchInput.style.fontSize = '16px';
-                        }
-                    }
+                // Use the global resize handler for consistency
+                if (window.globalResizeHandler) {
+                    window.addEventListener('resize', window.globalResizeHandler);
+                    // Call once on mount to apply styles
+                    window.globalResizeHandler();
                     
-                    // Always adjust content padding based on header height
-                    // This works for all screen sizes but is especially important for mobile
-                    const headerHeight = document.querySelector('.header-section')?.offsetHeight || 180;
-                    const mainLayout = document.querySelector('.main-layout');
-                    if (mainLayout) {
-                        mainLayout.style.paddingTop = `${headerHeight}px`;
-                    }
-                };
-                
-                window.addEventListener('resize', handleResize);
-                // Call once on mount to apply styles
-                handleResize();
-                
-                // Check header height after a short delay to ensure all content is rendered
-                setTimeout(handleResize, 500);
+                    // Check header height after a short delay to ensure all content is rendered
+                    setTimeout(window.globalResizeHandler, 500);
+                } else {
+                    console.warn('⚠️ Global resize handler not available yet');
+                    
+                    // Temporary fallback handler if global handler isn't ready
+                    const tempHandleResize = () => {
+                        // Set smaller initial search bar padding on mobile
+                        if (window.innerWidth < 480) {
+                            const searchInput = document.querySelector('.primary-search input');
+                            if (searchInput) {
+                                searchInput.style.padding = '12px 30px 12px 12px';
+                                searchInput.style.fontSize = '16px';
+                            }
+                        }
+                        
+                        handleContentPaddingUpdate("window resize in scroll handler");
+                    };
+                    
+                    window.addEventListener('resize', tempHandleResize);
+                    tempHandleResize();
+                    setTimeout(tempHandleResize, 500);
+                }
                 
                 return () => {
                     // Clean up all event listeners
@@ -1874,7 +1942,14 @@
                     }
                     window.removeEventListener('touchstart', handleTouchStart);
                     window.removeEventListener('touchmove', handleTouchMove);
-                    window.removeEventListener('resize', handleResize);
+                    
+                    // Remove global resize handler if available
+                    if (window.globalResizeHandler) {
+                        window.removeEventListener('resize', window.globalResizeHandler);
+                    } else {
+                        // Fallback to remove temporary handler
+                        window.removeEventListener('resize', tempHandleResize);
+                    }
                     
                     // Clear any pending timers
                     if (touchMoveTimer) clearTimeout(touchMoveTimer);
@@ -1885,128 +1960,44 @@
             
             // Calculate header height for proper content padding
             useEffect(() => {
+                // Legacy updateContentPadding function - delegates all calls to handleContentPaddingUpdate
+                // This is maintained for backward compatibility with existing code
                 const updateContentPadding = (forceUpdate = false) => {
-                    const header = document.querySelector('.header-section');
-                    const content = document.querySelector('.content-section');
-                    const exportMenu = document.querySelector('.export-menu');
+                    console.log('👉 Legacy updateContentPadding called - delegating to unified handler');
                     
-                    if (header && content) {
-                        // SKIP padding updates when manually hidden - let the manual effect handle it
-                        if (manuallyHidden && !forceUpdate) {
-                            console.log('⏭️ Skipping padding update - manually hidden');
-                            return;
-                        }
-                        
-                        // Temporarily disable transitions for immediate measurement
-                        const originalTransition = content.style.transition;
-                        if (forceUpdate) {
-                            content.style.transition = 'none';
-                        }
-                        
-                        // Force browser to recalculate layout for accurate measurements
-                        void header.offsetHeight; // Trigger reflow
-                        
-                        // Get header height - handle both visible and hidden states
-                        let headerHeight;
-                        
-                        // Check if header is currently visible
-                        const isHeaderVisible = header.style.opacity !== '0' && 
-                                              header.style.transform !== 'translateY(-100%)' &&
-                                              !manuallyHidden;
-                        
-                        if (isHeaderVisible) {
-                            // Header is visible, measure directly
-                            headerHeight = header.offsetHeight;
-                        } else {
-                            // Header is hidden, temporarily show it for measurement
-                            const originalDisplay = header.style.display;
-                            const originalVisibility = header.style.visibility;
-                            const originalOpacity = header.style.opacity;
-                            const originalTransform = header.style.transform;
-                            
-                            header.style.display = 'block';
-                            header.style.visibility = 'visible';
-                            header.style.opacity = '1';
-                            header.style.transform = 'translateY(0)';
-                            
-                            // Force reflow
-                            void header.offsetHeight;
-                            
-                            // Get the actual height of the header after making it visible
-                            headerHeight = header.offsetHeight;
-                            
-                            // Restore original properties
-                            header.style.display = originalDisplay;
-                            header.style.visibility = originalVisibility;
-                            header.style.opacity = originalOpacity;
-                            header.style.transform = originalTransform;
-                        }
-                        
-                        // NEW: Calculate exact position where tasks should start
-                        let idealTaskStartPosition = headerHeight;
-                        
-                        // Add buffer for export menu if it exists and is visible
-                        if (exportMenu && window.getComputedStyle(exportMenu).display !== 'none') {
-                            const exportMenuHeight = exportMenu.offsetHeight || 50;
-                            idealTaskStartPosition += exportMenuHeight + 20; // 20px margin
-                        }
-                        
-                        // Calculate optimal padding to position tasks just below all UI elements
-                        const optimalBuffer = 20; // Minimal buffer for clean spacing
-                        const finalPadding = idealTaskStartPosition + optimalBuffer;
-                        
-                        content.style.paddingTop = `${finalPadding}px`;
-                        
-                        // Add explicit debugging and force the padding with higher specificity
-                        content.style.setProperty('padding-top', `${finalPadding}px`, 'important');
-                        
-                        // Reduce console spam - only log on significant changes
-                        const currentState = `${headerHeight}-${finalPadding}-${isHeaderVisible}-${manuallyHidden}`;
-                        const lastState = window.lastPaddingState || '';
-                        
-                        if (currentState !== lastState) {
-                            console.log('📐 Content padding updated:', {
-                                headerHeight: headerHeight,
-                                idealTaskStart: idealTaskStartPosition,
-                                finalPadding: finalPadding,
-                                headerVisible: isHeaderVisible,
-                                manuallyHidden: manuallyHidden,
-                                gapReduction: `${80 - optimalBuffer}px saved`,
-                                paddingForced: true
-                            });
-                            
-                            // Also verify the padding was actually applied
-                            setTimeout(() => {
-                                const appliedPadding = window.getComputedStyle(content).paddingTop;
-                                console.log('✅ Padding verification:', {
-                                    expected: `${finalPadding}px`,
-                                    actual: appliedPadding,
-                                    success: appliedPadding === `${finalPadding}px`
-                                });
-                            }, 50);
-                            
-                            window.lastPaddingState = currentState;
-                        }
-                        
-                        if (forceUpdate) {
-                            // Restore original transition after a small delay
-                            setTimeout(() => {
-                                content.style.transition = originalTransition;
-                            }, 50);
-                        }
-                    }
+                    // Simply call our unified handler with appropriate reason
+                    handleContentPaddingUpdate(forceUpdate ? "legacy force update" : "legacy update");
+                    
+                    // For backward compatibility - return true to indicate success
+                    return true;
                 };
                 
-                // Run immediately on mount for faster initial positioning
-                updateContentPadding(true); // Force update on mount
+                // Run immediately on mount for faster initial positioning - using unified handler
+                handleContentPaddingUpdate("initial mount"); // Force update on mount
                 
-                // Reduced timer setup to prevent spam - only essential checks
-                const immediateTimer = setTimeout(() => updateContentPadding(true), 100);
-                const finalTimer = setTimeout(() => updateContentPadding(true), 800);
+                // Reduced timer setup to prevent spam - only essential checks - using unified handler
+                const immediateTimer = setTimeout(() => handleContentPaddingUpdate("delayed initial"), 100);
+                const finalTimer = setTimeout(() => handleContentPaddingUpdate("final initial"), 800);
                 
-                // And whenever window is resized
-                const handleResize = () => updateContentPadding(true);
-                window.addEventListener('resize', handleResize);
+                // Create a global resize handler that all resize events can use
+                window.globalResizeHandler = () => {
+                    // Single source of truth for resize handling
+                    handleContentPaddingUpdate("global window resize");
+                    
+                    // Handle mobile-specific adjustments
+                    if (window.innerWidth < 480) {
+                        const searchInput = document.querySelector('.primary-search input');
+                        if (searchInput) {
+                            searchInput.style.paddingLeft = '30px';
+                        }
+                    }
+                    
+                    // Update export menu position
+                    updateExportMenuPosition();
+                };
+                
+                // Register our main resize handler
+                window.addEventListener('resize', window.globalResizeHandler);
                 
                 // Special handler for the expand/collapse of instructions
                 let mutationTimer = null;
@@ -2028,7 +2019,7 @@
                     if (significantChange) {
                         // Debounce mutations to prevent spam
                         if (mutationTimer) clearTimeout(mutationTimer);
-                        mutationTimer = setTimeout(() => updateContentPadding(true), 300);
+                        mutationTimer = setTimeout(() => handleContentPaddingUpdate("DOM mutation"), 300);
                     }
                 });
                 
@@ -2047,7 +2038,9 @@
                     clearTimeout(immediateTimer);
                     clearTimeout(finalTimer);
                     if (mutationTimer) clearTimeout(mutationTimer);
-                    window.removeEventListener('resize', handleResize);
+                    if (window.globalResizeHandler) {
+                        window.removeEventListener('resize', window.globalResizeHandler);
+                    }
                     headerObserver.disconnect();
                 };
             }, [headerVisible, isExpanded]); // Removed manuallyHidden to prevent constant re-calculation
@@ -2059,32 +2052,50 @@
                 const content = document.querySelector('.content-section');
                 const exportMenu = document.querySelector('.export-menu');
                 
+                // Update body class to track manually hidden state
+                if (manuallyHidden) {
+                    document.body.classList.add('manually-hidden-header');
+                } else {
+                    document.body.classList.remove('manually-hidden-header');
+                }
+                
+                // Check if we're in initial load phase
+                const isInitialLoad = document.body.classList.contains('initial-load');
+                const isPostInitial = document.body.classList.contains('post-initial-transition');
+                
                 if (header && content) {
                     if (manuallyHidden) {
-                        // Fixed padding when header is manually hidden
-                        content.style.setProperty('padding-top', '40px', 'important');
-                        if (exportMenu) {
-                            exportMenu.style.top = '50px';
-                        }
-                        console.log('🔒 Manual hide - padding locked to 40px');
+                        // Fixed padding when header is manually hidden - use CSS variable for value
+                        const manualHiddenPadding = getComputedStyle(document.documentElement).getPropertyValue('--manual-hidden-padding') || '20px';
+                        content.style.setProperty('padding-top', manualHiddenPadding, 'important');
+                        
+                        // Update export menu position through the dedicated function for consistency
+                        updateExportMenuPosition();
+                        
+                        console.log('🔒 Manual hide - padding locked to ' + manualHiddenPadding);
+                        
+                        // Hide the header visually for additional confirmation
+                        header.style.display = 'none';
                         
                         // STOP other padding monitors when manually hidden
                         if (window.paddingMonitor) {
                             clearInterval(window.paddingMonitor);
                             window.paddingMonitor = null;
                         }
-                    } else {
-                        // Recalculate padding when showing again
-                        const headerHeight = header.offsetHeight || 194;
-                        const optimalBuffer = 20;
-                        const finalPadding = headerHeight + optimalBuffer;
-                        content.style.setProperty('padding-top', `${finalPadding}px`, 'important');
+                    } else if (!isInitialLoad && !isPostInitial) {
+                        // Show the header visually
+                        header.style.display = '';
+                        // Only recalculate if we're not in initial load or post-initial transition phase
+                        // Use our unified handler instead of direct calculation
+                        handleContentPaddingUpdate("manual show");
                         
-                        if (exportMenu) {
-                            const dynamicTop = headerHeight + 20;
-                            exportMenu.style.top = `${dynamicTop}px`;
-                        }
-                        console.log('🔓 Manual show - padding restored to', finalPadding + 'px');
+                        // Update export menu position through the dedicated function
+                        updateExportMenuPosition();
+                        
+                        console.log('🔓 Manual show - padding restored via unified handler');
+                    } else {
+                        console.log('⚠️ Skipping manual show during special phase:', 
+                            isInitialLoad ? 'initial-load' : 'post-initial-transition');
                     }
                 }
             }, [manuallyHidden]); // Only manuallyHidden dependency
@@ -2098,28 +2109,37 @@
                 const content = document.querySelector('.content-section');
                 const header = document.querySelector('.header-section');
                 if (content && header) {
-                    // Force immediate proper padding to prevent overlay - USE OPTIMIZED CALCULATION
+                    // Use our unified handler for consistent padding calculation
+                    
+                    // Force header to be visible for measurement
+                    const originalDisplay = header.style.display;
+                    const originalVisibility = header.style.visibility;
+                    
+                    header.style.display = 'block';
+                    header.style.visibility = 'visible';
+                    
+                    // Force reflow for accurate measurement
+                    void header.offsetHeight;
+                    
+                    // Get accurate height
                     const headerHeight = header.offsetHeight || 200; // Fallback height
                     
-                    // Use the same optimized calculation as everywhere else
-                    const exportMenu = document.querySelector('.export-menu');
-                    let idealTaskStartPosition = headerHeight;
+                    // Use the same standard buffer as normal operation for consistency
+                    // Get buffer from CSS variable
+                    const standardBuffer = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--standard-buffer') || '15');
+                    const safeInitialPadding = Math.ceil(headerHeight + standardBuffer); // Round up to avoid fractional pixels
                     
-                    // Add buffer for export menu if it exists and is visible
-                    if (exportMenu && window.getComputedStyle(exportMenu).display !== 'none') {
-                        const exportMenuHeight = exportMenu.offsetHeight || 50;
-                        idealTaskStartPosition += exportMenuHeight + 20; // 20px margin
-                    }
+                    // Store globally so our unified handler can use it
+                    window.initialLoadPadding = safeInitialPadding;
                     
-                    // Calculate optimal padding with minimal buffer
-                    const optimalBuffer = 20; // Same as main function
-                    const finalPadding = idealTaskStartPosition + optimalBuffer;
+                    // Use our unified handler for initial padding
+                    handleContentPaddingUpdate("initial setup");
                     
-                    content.style.paddingTop = `${finalPadding}px`;
-                    console.log('🚀 Initial optimized padding set immediately:', finalPadding + 'px');
+                    console.log('🚀 Initial padding setup via unified handler:', safeInitialPadding + 'px');
                     
-                    // Force the padding with higher specificity to override any CSS
-                    content.style.setProperty('padding-top', `${finalPadding}px`, 'important');
+                    // Restore original properties
+                    header.style.display = originalDisplay;
+                    header.style.visibility = originalVisibility;
                     
                     // Add a monitoring system to detect if padding gets reset
                     // Store the monitor reference globally so we can clear old ones
@@ -2127,32 +2147,93 @@
                         clearInterval(window.paddingMonitor);
                     }
                     
-                    window.paddingMonitor = setInterval(() => {
-                        const currentPadding = window.getComputedStyle(content).paddingTop;
-                        if (currentPadding !== `${finalPadding}px`) {
-                            console.warn('🚨 Padding was reset!', {
-                                expected: `${finalPadding}px`,
-                                current: currentPadding,
-                                restoring: true
-                            });
-                            content.style.setProperty('padding-top', `${finalPadding}px`, 'important');
-                        }
-                    }, 500);
+                    // Store this value globally so other padding systems can respect it during initial load
+                    window.initialLoadPadding = safeInitialPadding;
                     
-                    // Clear monitor after 5 seconds and store reference for cleanup
+                    window.paddingMonitor = setInterval(() => {
+                        // More aggressive padding monitoring during initial load phase
+                        if (document.body.classList.contains('initial-load')) {
+                            // Calculate standard padding - same calculation as normal operation
+                            const standardBuffer = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--standard-buffer') || '15');
+                            const headerHeight = header.offsetHeight || 200;
+                            const standardPadding = Math.ceil(headerHeight + standardBuffer);
+                            
+                            const currentPadding = window.getComputedStyle(content).paddingTop;
+                            const expectedPadding = `${standardPadding}px`;
+                            
+                            // Always enforce padding during initial load, even if it looks right
+                            // This prevents momentary flashes of incorrect padding
+                            content.style.setProperty('padding-top', expectedPadding, 'important');
+                            
+                            // Log only if it was incorrect
+                            if (currentPadding !== expectedPadding) {
+                                console.warn('🚨 Padding was reset during initial load!', {
+                                    expected: expectedPadding,
+                                    current: currentPadding,
+                                    restoring: true
+                                });
+                            }
+                            
+                            // Also update other elements that might be affected
+                            // Always retrieve the export menu fresh from the DOM, don't rely on closure
+                            const exportMenuElement = document.querySelector('.export-menu');
+                            if (exportMenuElement) {
+                                exportMenuElement.style.top = '280px'; // Keep consistent with our other settings
+                                exportMenuElement.style.position = 'relative';
+                                exportMenuElement.style.marginTop = '5px';
+                            }
+                        }
+                    }, 50); // Check very frequently (50ms) to catch any resets
+                    
+                    // Clear monitor after 5 seconds or when initial-load class is removed
                     setTimeout(() => {
                         if (window.paddingMonitor) {
                             clearInterval(window.paddingMonitor);
                             window.paddingMonitor = null;
+                            console.log('⏱️ Padding monitor cleared after timeout');
                         }
                     }, 5000);
                 }
                 
-                // Remove the initial-load class for faster initialization
+                // Remove the initial-load class after all rendering is stable
+                // Extended to 1000ms to ensure more complete stability
                 const removeInitialLoadClass = setTimeout(() => {
-                    document.body.classList.remove('initial-load');
-                    console.log('🎬 Initial load class removed - normal operation started');
-                }, 300); // Reduced to 300ms for faster initialization
+                    if (!content) return; // Safety check
+                    
+                    // Calculate padding using the standard buffer we use everywhere else
+                    const standardBuffer = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--standard-buffer') || '15');
+                    const headerHeight = header.offsetHeight || 200;
+                    const standardPadding = headerHeight + standardBuffer;
+                    
+                    // Use our consistent padding value for the transition
+                    content.style.setProperty('padding-top', `${standardPadding}px`, 'important');
+                    
+                    // Store the value before transition for verification
+                    const beforeTransitionPadding = window.getComputedStyle(content).paddingTop;
+                    console.log('🔍 Pre-transition padding check:', beforeTransitionPadding);
+                    
+                    // Begin transition process with stages
+                    setTimeout(() => {
+                        // 1. Apply post-initial class to prevent transition
+                        document.body.classList.add('post-initial-transition');
+                        
+                        // 2. Remove initial-load class
+                        document.body.classList.remove('initial-load');
+                        console.log('🎬 Initial load class removed - transition phase started');
+                        
+                        // 3. Force a padding update with special transition handler
+                        handleContentPaddingUpdate("post-initial transition");
+                        
+                        // 4. After a delay, complete the transition to normal operation
+                        setTimeout(() => {
+                            document.body.classList.remove('post-initial-transition');
+                            
+                            // 5. Final padding update for normal operation
+                            handleContentPaddingUpdate("normal operation");
+                            console.log('✅ Transition complete - normal operation active');
+                        }, 100);
+                    }, 50);
+                }, 1000); // Extended to 1000ms to ensure all content is stable
                 
                 return () => {
                     clearTimeout(removeInitialLoadClass);
@@ -2160,11 +2241,95 @@
                 };
             }, []);
             
-            // Effect to update export menu position whenever search term or header state changes
+            // Special effect to handle search term changes and update content padding
+            useEffect(() => {
+                console.log('🔍 Search term changed, recalculating layout:', searchTerm);
+                
+                // Skip padding updates during initial load or when manually hidden
+                const isInitialLoad = document.body.classList.contains('initial-load');
+                const isActuallyHidden = manuallyHidden || document.body.classList.contains('manually-hidden-header');
+                
+                if (isInitialLoad || isActuallyHidden) {
+                    console.log('🔍 Search term changed but skipping padding update due to:', 
+                        isInitialLoad ? 'initial load phase' : 'manually hidden header');
+                    return;
+                }
+                
+                // Use our specialized handler with proper debouncing
+                let timers = [];
+                
+                // Initial quick update for fast feedback
+                timers.push(setTimeout(() => {
+                    handleContentPaddingUpdate("search term initial");
+                    updateExportMenuPosition();
+                }, 10));
+                
+                // Main update with sufficient delay for DOM changes
+                timers.push(setTimeout(() => {
+                    handleContentPaddingUpdate("search term main");
+                }, 250));
+                
+                // Final verification with longer delay
+                timers.push(setTimeout(() => {
+                    // Verify padding is sufficient using our constants for consistency
+                    const content = document.querySelector('.content-section');
+                    const header = document.querySelector('.header-section');
+                    
+                    if (content && header) {
+                        const headerHeight = header.offsetHeight;
+                        const currentPadding = parseInt(window.getComputedStyle(content).paddingTop);
+                        // Use our standard buffer from CSS variables for consistency
+                        const standardBuffer = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--standard-buffer') || '15');
+                        const minRequiredPadding = headerHeight + standardBuffer;
+                        
+                        console.log('🔍 Final search term padding verification:', {
+                            term: searchTerm,
+                            headerHeight,
+                            currentPadding,
+                            minRequiredPadding,
+                            isCorrect: currentPadding >= minRequiredPadding
+                        });
+                        
+                        // Force correct padding if it's too small
+                        if (currentPadding < minRequiredPadding) {
+                            console.log('⚠️ FINAL CORRECTION - using unified handler');
+                            handleContentPaddingUpdate("final search correction");
+                        }
+                    }
+                }, 500));
+                
+                // Return cleanup function to clear timers on component unmount or search term change
+                return () => {
+                    timers.forEach(timer => clearTimeout(timer));
+                };
+            }, [searchTerm, manuallyHidden]);
+            
+            // Effect to update export menu position whenever header state changes
             useEffect(() => {
                 const timer = setTimeout(updateExportMenuPosition, 100);
                 return () => clearTimeout(timer);
-            }, [searchTerm, manuallyHidden, headerVisible]);
+            }, [manuallyHidden, headerVisible]);
+            
+            // Effect to synchronize button text with header state on mount and state changes
+            useEffect(() => {
+                // This ensures the button text always matches the actual state
+                const syncButtonText = () => {
+                    const toggleBtn = document.getElementById('header-toggle-button');
+                    if (toggleBtn) {
+                        const isActuallyHidden = manuallyHidden || document.body.classList.contains('manually-hidden-header');
+                        toggleBtn.textContent = isActuallyHidden ? '▲ Suche anzeigen' : '▼ Suche ausblenden';
+                        console.log('🔄 Synchronized button text with header state:', isActuallyHidden ? 'hidden' : 'visible');
+                    }
+                };
+                
+                // Run immediately
+                syncButtonText();
+                
+                // And also after a short delay to ensure DOM is updated
+                const timer = setTimeout(syncButtonText, 200);
+                
+                return () => clearTimeout(timer);
+            }, [manuallyHidden]);
             
             // Effect to highlight the instructions button when scrolled down and instructions are hidden
             useEffect(() => {
@@ -2198,17 +2363,285 @@
                 }
             }, [lastScrollY, isExpanded, manuallyHidden]);
             
+            // Function to update CSS variables for consistent padding values
+            const updateCSSVariables = (variables) => {
+                Object.entries(variables).forEach(([name, value]) => {
+                    document.documentElement.style.setProperty(name, value);
+                });
+            };
+            
+            // Create style element to add CSS rules that block other padding attempts
+            const ensureCriticalStyles = () => {
+                // Check if our style is already added
+                if (document.getElementById('critical-padding-styles')) return;
+                
+                // Set initial CSS variables with consistent values
+                const header = document.querySelector('.smart-header');
+                const headerHeight = header ? header.offsetHeight : 200;
+                
+                updateCSSVariables({
+                    '--manual-hidden-padding': '20px',
+                    '--standard-buffer': '15px',
+                    '--search-buffer': '15px', // Make search buffer same as standard
+                    '--header-height': `${headerHeight}px` // Add header height variable
+                });
+                
+                // Create a style element for our critical rules
+                const style = document.createElement('style');
+                style.id = 'critical-padding-styles';
+                style.innerHTML = `
+                    /* Critical padding rules to prevent unwanted transitions */
+                    .initial-load .content-section {
+                        transition: none !important; /* Prevent transitions during initial load */
+                        /* We'll use dynamic calculation instead of a CSS variable */
+                    }
+                    
+                    /* Manually hidden header state */
+                    .manually-hidden-header .content-section {
+                        padding-top: var(--manual-hidden-padding, 20px) !important;
+                        transition: padding-top 0.2s ease-out !important;
+                    }
+                    
+                    /* Normal state - controlled by our unified handler */
+                    .content-section {
+                        /* Use transition only after initial load completed */
+                        transition: padding-top 0.2s ease-out !important;
+                    }
+                    
+                    /* Special transition state */
+                    .post-initial-transition .content-section {
+                        transition: none !important;
+                    }
+                `;
+                document.head.appendChild(style);
+                console.log('🛡️ Added enhanced critical padding protection styles');
+            };
+            
+            // Ensure our critical styles are added
+            ensureCriticalStyles();
+            
+            // PRIMARY HANDLER: Universal unified content padding function
+            // This is the single source of truth for all padding calculations
+            const handleContentPaddingUpdate = (reason = "general") => {
+                console.log(`📏 Updating content padding (reason: ${reason})`);
+                
+                const header = document.querySelector('.header-section');
+                const content = document.querySelector('.content-section');
+                const exportMenu = document.querySelector('.export-menu');
+                
+                if (!header || !content) {
+                    console.warn('⚠️ Cannot update padding - header or content element not found');
+                    return;
+                }
+                
+                // Update CSS variable for header height
+                const currentHeaderHeight = header.offsetHeight;
+                document.documentElement.style.setProperty('--header-height', `${currentHeaderHeight}px`);
+                
+                // Check if we're in initial load phase
+                const isInitialLoad = document.body.classList.contains('initial-load');
+                
+                // CASE 1: Handle manually hidden header state
+                // Check both the React state AND the DOM class for more reliable detection
+                const isActuallyHidden = manuallyHidden || document.body.classList.contains('manually-hidden-header');
+                
+                if (isActuallyHidden) {
+                    // Use CSS variable for consistent value
+                    const manualHiddenPadding = getComputedStyle(document.documentElement).getPropertyValue('--manual-hidden-padding') || '20px';
+                    content.style.setProperty('padding-top', manualHiddenPadding, 'important');
+                    
+                    // Update export menu position if available
+                    if (exportMenu) {
+                        // Use the same value for consistency
+                        exportMenu.style.top = '30px';
+                        exportMenu.style.position = 'sticky';
+                        exportMenu.style.marginTop = '0px';
+                    }
+                    
+                    console.log('🔒 Padding locked to ' + manualHiddenPadding + ' (header manually hidden)');
+                    return;
+                }
+                
+                // CASE 2: Handle initial load phase
+                if (isInitialLoad) {
+                    // Calculate standard padding the same way we do for normal operation
+                    const standardBuffer = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--standard-buffer') || '15');
+                    const headerHeight = header.offsetHeight || 200;
+                    const standardPadding = Math.ceil(headerHeight + standardBuffer);
+                    
+                    // Use standard padding during load phase for consistency
+                    content.style.setProperty('padding-top', `${standardPadding}px`, 'important');
+                    
+                    // Position export menu appropriately during initial load
+                    if (exportMenu) {
+                        // Position exactly the same as normal operation
+                        exportMenu.style.top = `${headerHeight + standardBuffer}px`;
+                        exportMenu.style.position = 'sticky';
+                        exportMenu.style.marginTop = '0px';
+                    }
+                    
+                    console.log('🚀 Using standard padding for initial load:', standardPadding + 'px');
+                    return;
+                }
+                
+                // SPECIAL CASE: Handle transition from initial to normal (post-initial)
+                // This prevents jumps when switching from initial-load to normal operation
+                if (reason === "post-initial transition") {
+                    // Apply a special class for this transitional state
+                    document.body.classList.add('post-initial-transition');
+                    
+                    // Calculate standard padding just like in normal operation
+                    const standardBuffer = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--standard-buffer') || '15');
+                    const headerHeight = header.offsetHeight || 200;
+                    const standardPadding = headerHeight + standardBuffer;
+                    
+                    content.style.setProperty('padding-top', `${standardPadding}px`, 'important');
+                    
+                    console.log('🔄 Smooth transition using standard padding:', standardPadding + 'px');
+                    
+                    // Remove the transitional class after the transition completes
+                    setTimeout(() => {
+                        document.body.classList.remove('post-initial-transition');
+                        handleContentPaddingUpdate("post-transition cleanup");
+                    }, 100);
+                    
+                    return;
+                }
+                
+                // CASE 3: Normal operation - calculate dynamic padding
+                
+                // Force visibility for accurate measurement if needed
+                const headerIsHidden = window.getComputedStyle(header).display === 'none' || 
+                                       window.getComputedStyle(header).visibility === 'hidden';
+                
+                let originalDisplay, originalVisibility;
+                if (headerIsHidden) {
+                    // Store original properties
+                    originalDisplay = header.style.display;
+                    originalVisibility = header.style.visibility;
+                    
+                    // Temporarily make visible for measurement
+                    header.style.display = 'block';
+                    header.style.visibility = 'visible';
+                    
+                    // Force reflow for accurate measurement
+                    void header.offsetHeight;
+                }
+                
+                // Measure header height
+                const headerHeight = header.offsetHeight || 200; // Fallback if measurement fails
+                
+                // CONSTANTS FOR CONSISTENT PADDING
+                // Define standard buffer sizes to maintain consistency across all calculations
+                const STANDARD_BUFFER = 15; // Standard buffer for all cases
+                const SEARCH_BUFFER = 20;   // Buffer when search term is active
+                
+                // Calculate base padding with consistent buffer
+                const buffer = (reason.includes('search') || searchTerm) ? SEARCH_BUFFER : STANDARD_BUFFER;
+                let totalPadding = headerHeight + buffer;
+                
+                // Account for export menu if it should be visible
+                if (exportMenu && searchTerm) {
+                    // Force visibility for measurement if needed
+                    const menuIsHidden = window.getComputedStyle(exportMenu).display === 'none';
+                    const originalMenuDisplay = exportMenu.style.display;
+                    
+                    if (menuIsHidden) {
+                        exportMenu.style.display = 'block';
+                        void exportMenu.offsetHeight; // Force reflow
+                    }
+                    
+                    const exportMenuHeight = exportMenu.offsetHeight || 80;
+                    const exportMenuMargin = 20; // Allow for margin
+                    totalPadding += exportMenuMargin; // Add margin, not entire height since it's positioned separately
+                    
+                    // Update export menu position
+                    const standardBuffer = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--standard-buffer') || '15');
+                    exportMenu.style.top = `${headerHeight + standardBuffer}px`;
+                    exportMenu.style.position = 'sticky';
+                    
+                    // Restore original display if changed
+                    if (menuIsHidden) {
+                        exportMenu.style.display = originalMenuDisplay;
+                    }
+                    
+                    console.log('📦 Export menu positioned at:', `${headerHeight + standardBuffer}px`);
+                }
+                
+                // If we temporarily made header visible, restore original properties
+                if (headerIsHidden && originalDisplay !== undefined) {
+                    header.style.display = originalDisplay;
+                    header.style.visibility = originalVisibility;
+                }
+                
+                // Apply the padding with high specificity
+                content.style.setProperty('padding-top', `${totalPadding}px`, 'important');
+                
+                console.log('� Padding updated:', {
+                    reason: reason,
+                    headerHeight: headerHeight,
+                    totalPadding: totalPadding,
+                    hasSearchTerm: !!searchTerm,
+                    isManuallyHidden: isActuallyHidden, // Use the accurate state from above
+                    domClassHasHidden: document.body.classList.contains('manually-hidden-header'),
+                    reactStateHidden: manuallyHidden,
+                    isInitialLoad: isInitialLoad
+                });
+            };
+            
             // Function to toggle header visibility manually - simplified to prevent React re-mounting
+            
+            // Function to toggle header visibility manually - uses unified padding handler
             const toggleHeaderManually = () => {
                 console.log("Toggle header button clicked!");
                 
                 const newHiddenState = !manuallyHidden;
+                
+                // Apply changes to the body class immediately for faster visual feedback
+                if (newHiddenState) {
+                    document.body.classList.add('manually-hidden-header');
+                    
+                    // Apply direct padding for immediate visual feedback when hiding
+                    const content = document.querySelector('.content-section');
+                    if (content) {
+                        const manualHiddenPadding = getComputedStyle(document.documentElement).getPropertyValue('--manual-hidden-padding') || '20px';
+                        content.style.setProperty('padding-top', manualHiddenPadding, 'important');
+                    }
+                    
+                    // Immediately update the toggle button text when hiding
+                    const toggleBtn = document.getElementById('header-toggle-button');
+                    if (toggleBtn) {
+                        toggleBtn.textContent = '▲ Suche anzeigen';
+                    }
+                    
+                    // Hide the header visually right away
+                    const header = document.querySelector('.header-section');
+                    if (header) {
+                        header.style.display = 'none';
+                    }
+                } else {
+                    document.body.classList.remove('manually-hidden-header');
+                    
+                    // Immediately update the toggle button text when showing
+                    const toggleBtn = document.getElementById('header-toggle-button');
+                    if (toggleBtn) {
+                        toggleBtn.textContent = '▼ Suche ausblenden';
+                    }
+                    
+                    // Show the header visually right away
+                    const header = document.querySelector('.header-section');
+                    if (header) {
+                        header.style.display = '';
+                    }
+                }
+                
+                // Update React state
                 setManuallyHidden(newHiddenState);
                 
-                // Let React handle the state change naturally without aggressive DOM manipulation
-                // The useEffect hooks will handle the proper updates based on the manuallyHidden state
+                // Skip the unified handler call which is causing inconsistency
+                // The useEffect for manuallyHidden will handle the padding properly
                 
-                console.log(`🔄 Header ${newHiddenState ? 'hiding' : 'showing'} - React state updated`);
+                console.log(`🔄 Header ${newHiddenState ? 'hiding' : 'showing'} - direct DOM update applied`);
             };
             
             return (
@@ -2275,7 +2708,7 @@
                         <div className="filter-container">
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                                 <h1 style={{ color: '#FFD700', margin: 0, fontSize: '2rem' }}>
-                                    Dienstplan 2025 test
+                                    Dienstplan 2025
                                 </h1>
                                 
                                 {/* Toggle Button for Instructions */}
@@ -2408,7 +2841,26 @@
                                 <input
                                     type="text"
                                     value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    onChange={(e) => {
+                                        const newValue = e.target.value;
+                                        setSearchTerm(newValue);
+                                        
+                                        // Use our specialized handler for immediate feedback
+                                        setTimeout(() => {
+                                            if (!manuallyHidden) {
+                                                // If adding a search term (showing export menu)
+                                                if (newValue && !searchTerm) {
+                                                    console.log('🔍 Search started - ensuring proper padding');
+                                                    handleContentPaddingUpdate("search term");
+                                                }
+                                                // If clearing a search term (hiding export menu)
+                                                else if (!newValue && searchTerm) {
+                                                    console.log('🔍 Search cleared - ensuring proper padding');
+                                                    handleContentPaddingUpdate("search term");
+                                                }
+                                            }
+                                        }, 50);
+                                    }}
                                     placeholder="Nach Namen suchen..."
                                 />
                                 {/* Clear search button */}
@@ -2629,79 +3081,164 @@
                                     <button 
                                         className="nav-btn"
                                         onClick={() => {
-                                            // Set the current date as a CSS variable before printing
+                                            // Use a simple print approach that modifies the page and restores it
+                                            // Get current date for footer
                                             const currentDate = new Date().toLocaleDateString('de-DE');
-                                            document.documentElement.style.setProperty('--print-date', `"${currentDate}"`);
                                             
-                                            // Set the subtitle with search term
-                                            const subtitle = searchTerm 
-                                                ? `Aufgaben für: ${searchTerm}` 
-                                                : `Alle Aufgaben`;
-                                            
-                                            // Create a more detailed subtitle when printing for a specific person
-                                            if (searchTerm) {
-                                                const taskCount = filteredTasks.length;
-                                                const taskText = taskCount === 1 ? "Aufgabe" : "Aufgaben";
-                                                // Create subtitle showing "Aufgaben für [Person Name]" as in the PDF screenshot
-                                                const subtitle = `Aufgaben für ${searchTerm}`;
-                                                document.documentElement.style.setProperty('--print-subtitle', `"${subtitle}"`);
-                                                
-                                                // Set personalized footer
-                                                let personalizedFooter = `Vielen Dank für deine Unterstützung bei der Kirmes in Kettig 2025, ${searchTerm}!`;
-                                                document.documentElement.style.setProperty('--print-footer', `"${personalizedFooter}"`);
-                                            } else {
-                                                const allTasksSubtitle = `Alle Aufgaben (${filteredTasks.length})`;
-                                                document.documentElement.style.setProperty('--print-subtitle', `"${allTasksSubtitle}"`);
-                                                const footerText = `Ausgedruckt am ${currentDate}`;
-                                                document.documentElement.style.setProperty('--print-footer', `"${footerText}"`);
-                                            }
-                                            
-                                            // Add date below the footer for all prints
-                                            const dateDiv = document.createElement('div');
-                                            dateDiv.style.position = 'fixed';
-                                            dateDiv.style.bottom = '5mm';
-                                            dateDiv.style.right = '10mm';
-                                            dateDiv.style.fontSize = '8pt';
-                                            dateDiv.style.color = '#999';
-                                            dateDiv.style.zIndex = '9999';
-                                            dateDiv.style.fontStyle = 'italic';
-                                            dateDiv.innerHTML = `Ausgedruckt am ${currentDate}`;
-                                            document.body.appendChild(dateDiv);
-                                            
-                                            // Remove the date div after printing
-                                            setTimeout(() => {
-                                                document.body.removeChild(dateDiv);
-                                            }, 1000);
-                                            
-                                            // Optimize the layout for single-page printing by temporarily 
-                                            // modifying some style properties
+                                            // Store original styles to restore later
                                             const contentDiv = document.querySelector('.content-section > div');
                                             const taskCards = document.querySelectorAll('.task-card');
-                                            
-                                            // Store original styles to restore after printing
                                             const originalStyles = {
-                                                contentMargin: contentDiv.style.margin,
+                                                contentMargin: contentDiv?.style.margin,
                                                 taskCardMargin: Array.from(taskCards).map(card => card.style.marginBottom)
                                             };
                                             
-                                            // Apply tight layout if there are only a few tasks
-                                            if (filteredTasks.length <= 5) {
-                                                taskCards.forEach(card => {
-                                                    card.style.marginBottom = '4px';
-                                                    card.style.padding = '5px';
-                                                });
-                                            }
+                                            // Create a custom print container
+                                            const printContent = document.createElement('div');
+                                            printContent.id = "print-content";
+                                            printContent.style.position = "fixed";
+                                            printContent.style.top = "0";
+                                            printContent.style.left = "0";
+                                            printContent.style.width = "100%";
+                                            printContent.style.background = "white";
+                                            printContent.style.zIndex = "9999";
+                                            printContent.style.padding = "0";
+                                            printContent.style.margin = "0";
+                                            printContent.style.fontFamily = "Arial, sans-serif";
                                             
-                                            // Trigger print dialog immediately
-                                            window.print();
+                                            // Generate HTML for printing
+                                            printContent.innerHTML = `
+                                                <div style="font-family: Arial, sans-serif; padding: 15px; margin: 0 auto;">
+                                                    <div style="text-align: center; margin: 0 0 5px 0; padding: 0;">
+                                                        <div style="font-size: 16pt; font-weight: bold; margin: 0; padding: 0;">
+                                                            Kirmes in Kettig - Dienstplan 2025
+                                                        </div>
+                                                        <div style="font-size: 14pt; font-weight: bold; margin: 5px 0; padding: 0 0 2px 0; border-bottom: 1px dotted #ccc;">
+                                                            ${searchTerm ? `Aufgaben für ${searchTerm}` : `Alle Aufgaben (${filteredTasks.length})`}
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div style="margin-top: 10px;">
+                                                    ${filteredTasks.map((task, idx) => `
+                                                        <div style="margin-bottom: 8px; padding: 8px; border: 1px solid #ccc; border-radius: 5px; page-break-inside: avoid;">
+                                                            <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-bottom: 5px;">
+                                                                <div style="flex: 1;">
+                                                                    <div style="font-weight: bold; font-size: 12pt; margin: 0; color: black;">
+                                                                        📍 ${task.task}
+                                                                    </div>
+                                                                </div>
+                                                                <div style="text-align: right;">
+                                                                    <div style="font-weight: bold; font-size: 10pt; color: black;">
+                                                                        📅 ${task.date === 'Freitag' ? 'Freitag, 22. August' : 
+                                                                             task.date === 'Samstag' ? 'Samstag, 23. August' :
+                                                                             task.date === 'Sonntag' ? 'Sonntag, 24. August' :
+                                                                             task.date === 'Montag' ? 'Montag, 25. August' :
+                                                                             task.date === 'Dienstag' ? 'Dienstag, 26. August' :
+                                                                             task.date === 'Mittwoch' ? 'Mittwoch, 27. August' :
+                                                                             task.date}
+                                                                    </div>
+                                                                    <div style="font-size: 10pt; color: black;">
+                                                                        🕐 ${task.time}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            
+                                                            <div>
+                                                                <div style="font-size: 10pt; margin-bottom: 5px; font-weight: bold; color: black;">
+                                                                    👥 Zugewiesene Personen (${task.persons.length}):
+                                                                </div>
+                                                                <div style="display: flex; flex-wrap: wrap; gap: 5px;">
+                                                                    ${task.persons.map(person => `
+                                                                        <span style="
+                                                                            display: inline-block;
+                                                                            padding: 2px 6px;
+                                                                            margin: 0;
+                                                                            border-radius: 3px;
+                                                                            font-size: 9pt;
+                                                                            ${person.toLowerCase().includes(searchTerm.toLowerCase()) ? 
+                                                                                'background-color: #ffeb99; font-weight: bold;' : 
+                                                                                'background-color: #f5f5f5;'
+                                                                            }
+                                                                            color: black;
+                                                                        ">
+                                                                            ${person} ${person.toLowerCase().includes(searchTerm.toLowerCase()) ? '←' : ''}
+                                                                        </span>
+                                                                    `).join('')}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    `).join('')}
+                                                    </div>
+                                                    
+                                                    <div style="text-align: center; margin-top: 15px; font-size: 10pt; color: #666; font-style: italic;">
+                                                        ${searchTerm ? 
+                                                            `Vielen Dank für deine Unterstützung bei der Kirmes in Kettig 2025, ${searchTerm}!` : 
+                                                            `Alle Aufgaben für die Kirmes in Kettig 2025`
+                                                        }
+                                                        <br/>
+                                                        <span style="font-size: 8pt; margin-top: 5px; display: block;">
+                                                            Ausgedruckt am ${currentDate}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            `;
                                             
-                                            // Restore original styles after printing
+                                            // Add the print container to the body
+                                            document.body.appendChild(printContent);
+                                            
+                                            // Create print-specific style to hide everything else
+                                            const printStyle = document.createElement('style');
+                                            printStyle.id = 'print-style';
+                                            printStyle.innerHTML = `
+                                                @media print {
+                                                    body * {
+                                                        visibility: hidden;
+                                                    }
+                                                    #print-content, #print-content * {
+                                                        visibility: visible;
+                                                    }
+                                                    #print-content {
+                                                        position: absolute;
+                                                        left: 0;
+                                                        top: 0;
+                                                        width: 100%;
+                                                        padding-top: 0 !important;
+                                                        margin-top: 0 !important;
+                                                    }
+                                                    @page {
+                                                        margin: 0.5cm;
+                                                        size: A4 portrait;
+                                                    }
+                                                    html, body {
+                                                        height: auto !important;
+                                                        margin: 0 !important;
+                                                        padding: 0 !important;
+                                                    }
+                                                }
+                                            `;
+                                            document.head.appendChild(printStyle);
+                                            
+                                            // Trigger print after a short delay to ensure the content is rendered
                                             setTimeout(() => {
-                                                contentDiv.style.margin = originalStyles.contentMargin;
-                                                taskCards.forEach((card, index) => {
-                                                    card.style.marginBottom = originalStyles.taskCardMargin[index];
-                                                });
-                                            }, 1000);
+                                                window.print();
+                                                
+                                                // Clean up after printing
+                                                setTimeout(() => {
+                                                    // Remove the temporary elements
+                                                    document.body.removeChild(printContent);
+                                                    document.head.removeChild(printStyle);
+                                                    
+                                                    // Restore original styles if needed
+                                                    if (contentDiv && originalStyles.contentMargin) {
+                                                        contentDiv.style.margin = originalStyles.contentMargin;
+                                                    }
+                                                    taskCards.forEach((card, index) => {
+                                                        if (originalStyles.taskCardMargin[index]) {
+                                                            card.style.marginBottom = originalStyles.taskCardMargin[index];
+                                                        }
+                                                    });
+                                                }, 500);
+                                            }, 200);
                                         }}
                                         style={{ 
                                             padding: '4px 12px', 
@@ -2827,11 +3364,13 @@
                                                                     { backgroundColor: 'rgba(255, 255, 255, 0.15)', opacity: 0.8 }
                                                                 ], { duration: 300, fill: 'forwards' });
                                                                 
-                                                                // Force update content padding after filter change with debug info
-                                                                setTimeout(() => forceUpdateContentPadding(true), 100);
-                                                                setTimeout(() => forceUpdateContentPadding(true), 300);
-                                                                // Final check with longer delay
-                                                                setTimeout(() => forceUpdateContentPadding(false), 800);
+                                                                // Use unified handler for search term padding
+                                                                if (!manuallyHidden) {
+                                                                    setTimeout(() => handleContentPaddingUpdate("search term"), 50);
+                                                                    setTimeout(() => handleContentPaddingUpdate("search term"), 150);
+                                                                    setTimeout(() => handleContentPaddingUpdate("search term"), 300);
+                                                                    setTimeout(() => handleContentPaddingUpdate("search term"), 500);
+                                                                }
                                                             } else {
                                                                 setSearchTerm(person); // Set the filter
                                                                 
@@ -2859,11 +3398,13 @@
                                                                     }
                                                                 }, 600);
                                                                 
-                                                                // Force update content padding after filter change with debug info
-                                                                setTimeout(() => forceUpdateContentPadding(true), 100);
-                                                                setTimeout(() => forceUpdateContentPadding(true), 300);
-                                                                // Final check with longer delay
-                                                                setTimeout(() => forceUpdateContentPadding(false), 800);
+                                                                // Use unified handler for search term padding
+                                                                if (!manuallyHidden) {
+                                                                    setTimeout(() => handleContentPaddingUpdate("search term"), 50);
+                                                                    setTimeout(() => handleContentPaddingUpdate("search term"), 150);
+                                                                    setTimeout(() => handleContentPaddingUpdate("search term"), 300);
+                                                                    setTimeout(() => handleContentPaddingUpdate("search term"), 500);
+                                                                }
                                                             }
                                                         }}
                                                         style={{
@@ -3057,14 +3598,67 @@
             return !tasksChanged; // Return true to PREVENT re-render, false to ALLOW
         });
         
+        // Cookie Consent Banner Component
+        const CookieBanner = ({ onAccept, onDecline }) => {
+            return (
+                <div className="cookie-banner">
+                    <div className="cookie-content">
+                        <h3>Cookies für Login</h3>
+                        <p>Diese Website verwendet Cookies, um deine Login-Daten zu speichern.<br />
+                        Bei Akzeptieren bleibst du automatisch angemeldet.<br />
+                        Bei Ablehnen ist bei jedem Besuch eine erneute Anmeldung erforderlich.</p>
+                        <div className="cookie-buttons">
+                            <button onClick={onAccept} className="btn btn-success">Akzeptieren</button>
+                            <button onClick={onDecline} className="btn btn-secondary">Ablehnen</button>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+        
         // Main App Component - Simplified
         const App = () => {
             const [isLoggedIn, setIsLoggedIn] = useState(false);
             const [tasks, setTasks] = useState([]);
             const [error, setError] = useState('');
+            const [showCookieConsent, setShowCookieConsent] = useState(false);
+            const [cookieConsent, setCookieConsent] = useState(false);
             
             // Debug: Log when App component renders
             console.log("🏠 App component rendering - logged in:", isLoggedIn, "tasks count:", tasks.length);
+            
+            // Check for cookie consent and stored login
+            useEffect(() => {
+                const consent = getCookie(StorageKeys.COOKIE_CONSENT);
+                setCookieConsent(consent === "true");
+                
+                // If user has consented to cookies, check for stored login
+                if (consent === "true") {
+                    const storedLogin = getCookie(StorageKeys.LOGIN_COOKIE);
+                    if (storedLogin === "kirmes2025") {
+                        console.log("🔑 Auto-login from cookie");
+                        handleLogin("kirmes2025", true); // Password, cookieAllowed=true
+                    }
+                } else if (consent === "") {
+                    // If no consent decision has been made yet, show the banner
+                    setShowCookieConsent(true);
+                }
+            }, []);
+            
+            // Handle cookie consent decisions
+            const handleCookieAccept = () => {
+                setCookieConsent(true);
+                setShowCookieConsent(false);
+                setCookie(StorageKeys.COOKIE_CONSENT, "true");
+            };
+            
+            const handleCookieDecline = () => {
+                setCookieConsent(false);
+                setShowCookieConsent(false);
+                setCookie(StorageKeys.COOKIE_CONSENT, "false");
+                // Remove any existing login cookies
+                deleteCookie(StorageKeys.LOGIN_COOKIE);
+            };
             
             // Load data from CSV file on component mount
             useEffect(() => {
@@ -3105,7 +3699,7 @@
                 setTasks([]);
             };
             
-            const handleLogin = () => {
+            const handleLogin = (password, cookieAllowed = false) => {
                 // Complete cache clearing
                 localStorage.clear();
                 sessionStorage.clear();
@@ -3117,6 +3711,13 @@
                     });
                 }
                 
+                // Save login to cookie if cookie consent was granted
+                if (cookieAllowed) {
+                    console.log("🔒 Saving login cookie (cookies accepted)");
+                    setCookie(StorageKeys.LOGIN_COOKIE, password);
+                } else {
+                    console.log("🚫 Not saving login cookie (cookies declined)");
+                }
 
                 setIsLoggedIn(true);
                 setError('');
@@ -3131,6 +3732,14 @@
                 setError('Falsches Passwort. Bitte versuchen Sie es erneut.');
             };
             
+            const handleLogout = () => {
+                setIsLoggedIn(false);
+                setError('');
+                // Clear login cookie
+                deleteCookie(StorageKeys.LOGIN_COOKIE);
+                console.log("🚪 Logged out and cleared login cookie");
+            };
+            
             // Memoize tasks to prevent unnecessary re-renders (MUST be before conditional return)
             const memoizedTasks = React.useMemo(() => {
                 console.log('🔄 Memoizing tasks array, length:', tasks.length);
@@ -3138,13 +3747,32 @@
             }, [tasks.length]); // Only re-memoize if tasks count changes, not the array reference
             
             if (!isLoggedIn) {
-                return <LoginPage onLogin={handleLogin} onWrongPassword={handleWrongPassword} error={error} />;
+                return (
+                    <>
+                        {showCookieConsent && 
+                            <CookieBanner 
+                                onAccept={handleCookieAccept} 
+                                onDecline={handleCookieDecline} 
+                            />
+                        }
+                        <LoginPage onLogin={handleLogin} onWrongPassword={handleWrongPassword} error={error} />
+                    </>
+                );
             }
             
             return (
-                <TaskViewer 
-                    tasks={memoizedTasks} 
-                />
+                <>
+                    {showCookieConsent && 
+                        <CookieBanner 
+                            onAccept={handleCookieAccept} 
+                            onDecline={handleCookieDecline} 
+                        />
+                    }
+                    <TaskViewer 
+                        tasks={memoizedTasks}
+                        onLogout={handleLogout}
+                    />
+                </>
             );
         };
         
@@ -3153,13 +3781,7 @@
         root.render(<App />);
     </script>
 
-    <!-- Smart Header Controller JavaScript -->
 
-
-    <!-- Removed external smart-header.js script - using inline header control in React component -->
-
-
-    <!-- Hamburger Menu Implementation has been removed -->
     
 </body>
 </html>
