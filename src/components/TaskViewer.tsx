@@ -236,7 +236,7 @@ const TaskViewer: React.FC<TaskViewerProps> = ({ tasks }) => {
         {searchTerm && (
           <div className="export-menu">
             <div className="export-buttons">
-              <span>{filteredTasks.length} Aufgaben gefunden {searchTerm && `für "${searchTerm}"`}</span>
+              <span>{filteredTasks.length} Dienste gefunden {searchTerm && `für "${searchTerm}"`}</span>
               
               {/* WhatsApp sharing button */}
               <button 
@@ -260,7 +260,7 @@ const TaskViewer: React.FC<TaskViewerProps> = ({ tasks }) => {
               <button 
                 onClick={() => window.print()}
                 className="nav-btn"
-                title="Aufgaben drucken"
+                title="Dienste drucken"
               >
                 🖨️ Drucken
               </button>
