@@ -168,7 +168,6 @@ const TaskViewer: React.FC<TaskViewerProps> = ({ tasks }) => {
           {/* Collapsible Instructions Box */}
           {isExpanded && (
             <div style={{ 
-              transition: 'all 0.4s ease',
               background: 'var(--primary-yellow)',
               border: '2px solid var(--secondary-black)',
               padding: '15px',

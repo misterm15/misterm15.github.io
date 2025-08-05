@@ -24,18 +24,12 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onWrongPassword, error }
         </div>
       </nav>
 
-      {/* Decorative Border */}
-      <div className="kirmes-border"></div>
-
       {/* Hero Section */}
       <div className="hero-section">
         <h1 className="hero-title">Kirmes Dienstplan</h1>
         <div className="hero-date">2025</div>
         <p className="hero-subtitle">Bartholomäus-Kirmes Kettig</p>
       </div>
-
-      {/* Decorative Border */}
-      <div className="kirmes-border"></div>
 
       {/* Login Section */}
       <div className="container">
