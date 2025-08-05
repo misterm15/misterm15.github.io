@@ -11,22 +11,3 @@ node_modules
 dist
 dist-ssr
 *.local
-
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
-.DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-
-# Old files from HTML version (no longer needed)
-floating-search.js
-hamburger-menu.js
-smart-header.css
-smart-header.js
-index-original.html
-DEPLOYMENT_GUIDE.md
