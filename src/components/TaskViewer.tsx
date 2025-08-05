@@ -129,7 +129,7 @@ const TaskViewer: React.FC<TaskViewerProps> = ({ tasks }) => {
       />
       
       {/* Scrollable Content */}
-      <div className="content-section" style={{ paddingTop: '200px' }}>
+      <div className="content-section" style={{ paddingTop: '30px' }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
           {filteredTasks.map((task, index) => (
             <TaskCard key={index} task={task} />
